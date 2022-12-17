@@ -164,7 +164,8 @@ def fn_create_scratch_map(scope='world', projection = "natural earth"):
     fig.update_geos(scope=scope # "africa" | "asia" | "europe" | "north america" | "south america" | "usa" | "world" )
                     , showframe=True
                     , framecolor=random.choice(['wheat', 'snow', 'powderblue','midnightblue'])
-                    , bgcolor="#0E1117"
+                    # , bgcolor="#0E1117"
+                    , bgcolor='rgba(0,0,0,0)'
                     , resolution=110
                     , showcountries=True
                     , countrycolor="grey"
