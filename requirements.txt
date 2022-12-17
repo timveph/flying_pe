@@ -1,5 +1,5 @@
 gspread
-gsheetsdb=0.1.13.1
+# gsheetsdb==0.1.13.1
 google-api-python-client 
 google-auth-httplib2 
 google-auth-oauthlib
