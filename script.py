@@ -7,20 +7,14 @@ import pandas as pd
 import plotly.express as px
 from dataprep.clean import clean_country
 
+################### STREAMLIT-Config #################
 # App config #
 st.set_page_config(page_title="Flying Pe"
                     ,page_icon = ":airplane"
                     # ,page_icon=Image.open('') 
                     )
+######################################################
 
-# Hide menu & footer
-hide_menu_style = """
-                    <style>
-                    #MainMenu {visibility: visible; }
-                    footer {visibility: hidden;}
-                    </style>
-        """
-st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 # Panda options #
 # pd.set_option('display.max_rows', 100)
@@ -209,22 +203,29 @@ def fn_create_scratch_map(scope='world', projection = "natural earth"):
     return fig
 
 
-### STREAMLIT ###
+################### STREAMLIT #################################
+# Hide menu & footer
+hide_menu_style = """
+                    <style>
+                    #MainMenu {visibility: visible; }
+                    footer {visibility: hidden;}
+                    </style>
+        """
+st.markdown(hide_menu_style, unsafe_allow_html=True)
+
 st.title('Flying Pe')
+st.markdown("***")
 
 # Columns
 col_flights, col_countries, col_cities, col_nights_away = st.columns(4, gap='small')
-
 # Radio button - select continent
-radio_continent = st.radio(" "
+radio_continent = st.radio(""
                             ,('🌎', 'Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania')
                             ,index=0
                             ,key='radio_continent'
                             ,horizontal=True)
 
-st.markdown(' ') # formatting - line break horizontal line etc.
-
-
+st.markdown('***')
 
 # Metrics Calculations
 # All places/regions/countries/continents etc.
