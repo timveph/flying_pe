@@ -1,2 +1,4 @@
 env
+.streamlit
 service_account.json
+lib
