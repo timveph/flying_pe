@@ -59,11 +59,20 @@ df = fn_read_spreadsheet()
 
 ### Read in country codes + other (maybe) useful data ###
 
-@st.experimental_memo
+@st.experimental_memo(ttl=86400)
 def fn_country_code_data():
     df_country_codes = pd.read_csv("https://datahub.io/core/country-codes/r/country-codes.csv"
                         , header=0, delimiter=',', keep_default_na=False, na_values='')
     return df_country_codes
+
+@st.experimental_memo(ttl=86400)
+def fn_continent_code_data():
+    df_continent_codes = pd.read_csv("https://datahub.io/core/continent-codes/r/continent-codes.csv"
+                        , header=0, delimiter=',', keep_default_na=False, na_values='')
+    return df_continent_codes
+
+df_continent_codes = fn_continent_code_data()
+df_continent_codes = df_continent_codes.rename(columns = {'Code':'Continent', 'Name':'Continent Name'})
 
 
 df_country_codes = fn_country_code_data()
@@ -73,28 +82,25 @@ df_country_codes = df_country_codes[
         , 'ISO3166-1-Alpha-3', 'Geoname ID']
 ]
 
-# print(df_country_codes.sample(5))
-
 ### function to get official country name and alpha-3 country codes ###
 
-# df = clean_country(df, "Country", input_format='name', output_format='alpha-2')
 df = clean_country(df, "Country", input_format="name", output_format="official", inplace=False)
 df.rename(columns={'Country_clean': 'Official_Country_Name'}, inplace=True)
 df = clean_country(df, "Official_Country_Name", input_format="official", output_format="alpha-3", inplace=False)
 df.rename(columns={'Official_Country_Name_clean': 'alpha-3'}, inplace=True)
-# df = clean_country(df, "Official_Country_Name", input_format="official", output_format="continent", inplace=False)
 
-# df.rename(columns={'Country_clean': 'alpha2_code'}, inplace=True)
+### merge and get Continent Names ###
+df_country_codes = pd.merge(
+        df_country_codes
+        ,df_continent_codes
+        ,how='left'
+        ,on=['Continent']
+)
 
 #######################################################
 
-### function to get continent codes ###
 
-
-#######################################################
-
-
-### Plot frequency of trips ###
+### Calculate frequency of trips by various categories ###
 # Times visited & Days spent
 
 visits = df[["Country", "City", 'Official_Country_Name', 'alpha-3']] \
@@ -106,7 +112,14 @@ nights_away = df[["Country", "City", 'Official_Country_Name', 'alpha-3', "Nights
     .groupby(["Country", "City", 'alpha-3', 'Official_Country_Name'])["Nights away"] \
     .sum().to_frame().reset_index()
 
+# nights_away = df[["Country", "City", 'Official_Country_Name', 'alpha-3', "Nights away"]] \
+#     .groupby(["Country", "City", 'alpha-3', 'Official_Country_Name']) \
+#     .sum().reset_index()
+
+# nights_away = nights_away['Nights away'].sum()
+
 # print(visits.sample(5))
+# print(nights_away)
 # print(nights_away.sample(5))
 
 ## join on to these dataframes, the alpha 2 country code and the continent code #
@@ -122,11 +135,11 @@ df_geo = pd.merge(
     indicator=False,
     validate=None,
 )
-# merge continent codes onto df + additional metadata
+# merge country codes onto df + additional metadata
 df_geo = pd.merge(
     df_geo,
     df_country_codes[
-        ['Continent', 'Capital', 'Region Name', 'Sub-region Name', 'ISO3166-1-Alpha-2', 'ISO3166-1-Alpha-3']],
+        ['Continent', 'Continent Name', 'Capital', 'Region Name', 'Sub-region Name', 'ISO3166-1-Alpha-2', 'ISO3166-1-Alpha-3']],
     how='left',
     left_on='alpha-3',
     right_on='ISO3166-1-Alpha-3',
@@ -202,13 +215,6 @@ st.title('Flying Pe')
 # Columns
 col_flights, col_countries, col_cities, col_nights_away = st.columns(4, gap='small')
 
-# Metrics Calculations
-cnt_flights = len(df)
-cnt_countries = df['Country'].nunique()
-cnt_cities = df['City'].nunique()
-cnt_nights_away = df['Nights away'].sum()
-# cnt_countries = df.groupby(['Country']).size().reset_index(name='countries_visited')
-
 # Radio button - select continent
 radio_continent = st.radio(" "
                             ,('🌎', 'Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania')
@@ -218,15 +224,38 @@ radio_continent = st.radio(" "
 
 st.markdown(' ') # formatting - line break horizontal line etc.
 
+
+
+# Metrics Calculations
+# All places/regions/countries/continents etc.
+cnt_flights = len(df)
+cnt_countries = df['Country'].nunique()
+cnt_cities = df['City'].nunique()
+cnt_nights_away = df['Nights away'].sum()
+# Metrics based on continets
+cnt_flights_filtered = df_geo[df_geo['Continent Name']==radio_continent]['Visits'].sum()
+cnt_countries_filtered = df_geo[df_geo['Continent Name']==radio_continent]['Country'].nunique()
+cnt_cities_filtered = df_geo[df_geo['Continent Name']==radio_continent]['City'].nunique()
+cnt_nights_away_filtered = df_geo[df_geo['Continent Name']==radio_continent]['Nights away'].sum()
+print(cnt_flights_filtered)
+
 # Metrics
 with col_flights:
-    st.metric('Flights', cnt_flights)
+    st.metric('Flights'
+        , cnt_flights if radio_continent=='🌎' else cnt_flights_filtered
+        , delta=cnt_flights)
 with col_countries:
-    st.metric('Countries Visited', cnt_countries)
+    st.metric('Countries Visited'
+        , cnt_countries if radio_continent=='🌎' else cnt_countries_filtered
+        , delta=cnt_countries)
 with col_cities:
-    st.metric('Cities Visited', cnt_cities)
+    st.metric('Cities Visited'
+        , cnt_cities if radio_continent=='🌎' else cnt_cities_filtered
+        , delta=cnt_cities)
 with col_nights_away:
-    st.metric('Nights Away', cnt_nights_away)
+    st.metric('Nights Away'
+        , cnt_nights_away if radio_continent=='🌎' else cnt_nights_away_filtered
+        , delta=cnt_nights_away)
 
 # Scratch Map
 with st.spinner('Loading...'):
@@ -249,7 +278,7 @@ with st.spinner('Loading...'):
 
 # Dataframe
 # st.dataframe(df)
-with st.expander('Click to see data... (temporary)'):
+with st.expander('Click to see data... (for debugging)'):
     st.dataframe(df)
     st.dataframe(df_geo)
 # st.dataframe(df_country_codes)
