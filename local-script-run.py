@@ -1,7 +1,9 @@
 import sys
 import random
 import streamlit as st
-import gspread
+# import gspread
+from gspread_pandas import Spread,Client
+from google.oauth2 import service_account
 import pandas as pd
 import plotly.express as px
 from dataprep.clean import clean_country
@@ -9,22 +11,48 @@ from dataprep.clean import clean_country
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', None)
 
+### Create a connection to spreadsheet ###
+scope = ["https://www.googleapis.com/auth/spreadsheets"
+        ,"https://spreadsheets.google.com/feeds"
+        ,"https://www.googleapis.com/auth/drive"]
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=scope
+)
+client = Client(scope=scope, creds=credentials)
+# sheet_id = '1gTxZtpdl0DdrrJtAxDYjh3N5pzKXTzTDsWTLgZ0J-dY'
+spreadsheet_name = 'py_flight_data'
+sheet_name = 'flightDataset'
+spread = Spread(spreadsheet_name, client = client)
+
+# st.write(spread.url)
+
+# Call our spreadsheet
+sh = client.open(spreadsheet_name)
+# worksheet_list = sh.worksheets()
+
 ### READ SPREADSHEET ###
 @st.experimental_memo
 def fn_read_spreadsheet():
-    # :source: how to setup access to spreadsheet: https://docs.gspread.org/en/latest/oauth2.html
-    sheet_id = '1gTxZtpdl0DdrrJtAxDYjh3N5pzKXTzTDsWTLgZ0J-dY'
-    sheet_name = 'flightDataset'
-    gc = gspread.service_account(filename="service_account.json")
-    # sh = gc.open("Example spreadsheet")
-    # print(sh.sheet1.get('A1'))
-    spreadsheet = gc.open_by_key(sheet_id)
-    worksheet = spreadsheet.worksheet(sheet_name)
-    rows = worksheet.get_all_records()
-
-    df = pd.DataFrame(rows)
+    worksheet = sh.worksheet(sheet_name)
+    df = pd.DataFrame(worksheet.get_all_records())
     df = df[~(df['Flight Number'].isin(['#VALUE!']))] # filter out rows without data
     return df
+
+# def fn_read_spreadsheet():
+#     # :source: how to setup access to spreadsheet: https://docs.gspread.org/en/latest/oauth2.html
+#     sheet_id = '1gTxZtpdl0DdrrJtAxDYjh3N5pzKXTzTDsWTLgZ0J-dY'
+#     sheet_name = 'flightDataset'
+#     gc = gspread.service_account(filename="service_account.json")
+#     # sh = gc.open("Example spreadsheet")
+#     # print(sh.sheet1.get('A1'))
+#     spreadsheet = gc.open_by_key(sheet_id)
+#     worksheet = spreadsheet.worksheet(sheet_name)
+#     rows = worksheet.get_all_records()
+
+#     df = pd.DataFrame(rows)
+#     df = df[~(df['Flight Number'].isin(['#VALUE!']))] # filter out rows without data
+#     return df
 
 df = fn_read_spreadsheet()
 
