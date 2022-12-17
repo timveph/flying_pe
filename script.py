@@ -5,7 +5,7 @@ import gspread
 import pandas as pd
 import plotly.express as px
 from dataprep.clean import clean_country
-from google.oauth2 import service_account
+# from google.oauth2 import service_account
 # from gsheetsdb import connect
 
 pd.set_option('display.max_rows', 100)
@@ -13,15 +13,15 @@ pd.set_option('display.max_columns', None)
 
 ### READ SPREADSHEET ###
 # Create a connection object.
-credentials = service_account.Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"],
-    scopes=[
-        "https://www.googleapis.com/auth/spreadsheets",
-    ],
-)
-conn = connect(credentials=credentials)
-print("Connection string")
-print(conn)
+# credentials = service_account.Credentials.from_service_account_info(
+#     st.secrets["gcp_service_account"],
+#     scopes=[
+#         "https://www.googleapis.com/auth/spreadsheets",
+#     ],
+# )
+# conn = connect(credentials=credentials)
+# print("Connection string")
+# print(conn)
 
 @st.experimental_memo(ttl=3600)
 def fn_read_spreadsheet():
