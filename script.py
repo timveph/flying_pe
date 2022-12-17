@@ -7,8 +7,24 @@ import pandas as pd
 import plotly.express as px
 from dataprep.clean import clean_country
 
-pd.set_option('display.max_rows', 100)
-pd.set_option('display.max_columns', None)
+# App config #
+st.set_page_config(page_title="Flying Pe"
+                    ,page_icon = ":airplane"
+                    # ,page_icon=Image.open('') 
+                    )
+
+# Hide menu & footer
+hide_menu_style = """
+                    <style>
+                    #MainMenu {visibility: visible; }
+                    footer {visibility: hidden;}
+                    </style>
+        """
+st.markdown(hide_menu_style, unsafe_allow_html=True)
+
+# Panda options #
+# pd.set_option('display.max_rows', 100)
+# pd.set_option('display.max_columns', None)
 
 ### Create a connection to spreadsheet ###
 scope = ["https://www.googleapis.com/auth/spreadsheets"
