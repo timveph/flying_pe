@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.express as px
 from dataprep.clean import clean_country
 from google.oauth2 import service_account
-from gsheetsdb import connect
+# from gsheetsdb import connect
 
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', None)
