@@ -1,4 +1,4 @@
 env
-.streamlit
+.streamlit/secrets.toml
 service_account.json
 lib
