@@ -19,3 +19,6 @@ def fn_connect_to_spreadsheet():
     # Call our spreadsheet
     sh = client.open(spreadsheet_name)
     # worksheet_list = sh.worksheets()
+    # worksheet = sh.worksheet(sheet_name)
+
+    return sh
