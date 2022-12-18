@@ -8,6 +8,9 @@ import plotly.express as px
 from dataprep.clean import clean_country
 from geopy.distance import great_circle
 from millify import millify
+from scripts.fn_connect_to_spreadsheet import fn_connect_to_spreadsheet
+from scripts.fn_create_scratch_map import fn_create_scratch_map
+
 
 ################### STREAMLIT-Config #################
 # App config #
@@ -33,22 +36,9 @@ st.markdown(hide_menu_style, unsafe_allow_html=True)
 # pd.set_option('display.max_rows', 100)
 # pd.set_option('display.max_columns', None)
 
-### Create a connection to spreadsheet ###
-scope = ["https://www.googleapis.com/auth/spreadsheets"
-        ,"https://spreadsheets.google.com/feeds"
-        ,"https://www.googleapis.com/auth/drive"]
-credentials = service_account.Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"],
-    scopes=scope
-)
-client = Client(scope=scope, creds=credentials)
-spreadsheet_name = 'py_flight_data'
+# Connect to spreadsheet
+sh = fn_connect_to_spreadsheet()
 sheet_name = 'flightDataset'
-spread = Spread(spreadsheet_name, client = client)
-
-# Call our spreadsheet
-sh = client.open(spreadsheet_name)
-# worksheet_list = sh.worksheets()
 
 ### READ SPREADSHEET ###
 @st.experimental_memo()
@@ -102,7 +92,6 @@ df_country_codes = df_country_codes[
 ]
 
 ### function to get official country name and alpha-3 country codes ###
-
 df = clean_country(df, "Country", input_format="name", output_format="official", inplace=False)
 df.rename(columns={'Country_clean': 'Official_Country_Name'}, inplace=True)
 df = clean_country(df, "Official_Country_Name", input_format="official", output_format="alpha-3", inplace=False)
@@ -141,41 +130,29 @@ seconds_spent_travelling = df[["Country", "City", 'Official_Country_Name', 'alph
 
 ## join on to these dataframes, the alpha 2 country code and the continent code #
 # Merge vists and nights_away
-df_geo = pd.merge(
-    visits,
-    nights_away,
-    how="inner",
-    on=['Country', 'City', 'Official_Country_Name', 'alpha-3'],
-    sort=True,
-    suffixes=("_x", "_y"),
-    copy=True,
-    indicator=False,
-    validate=None,
-)
+def fn_merge_data(left_tbl, right_tbl, merge_how, merge_on=[]):
+    df = pd.merge(
+            left_tbl,
+            right_tbl,
+            how=merge_how,
+            on=merge_on,
+            sort=True,
+            suffixes=("_x", "_y"),
+            copy=True,
+            indicator=False,
+            validate=None,
+    )
+    return df
+
+merge_columns = ['Country', 'City', 'Official_Country_Name', 'alpha-3']
+
+# Merge nights away and visits
+df_geo = fn_merge_data(visits, nights_away, "inner", merge_columns)
 # Merge distance travelled
-df_geo = pd.merge(
-    df_geo,
-    distance_travelled,
-    how="inner",
-    on=['Country', 'City', 'Official_Country_Name', 'alpha-3'],
-    sort=True,
-    suffixes=("_x", "_y"),
-    copy=True,
-    indicator=False,
-    validate=None,
-)
-# Merge distance travelled
-df_geo = pd.merge(
-    df_geo,
-    seconds_spent_travelling,
-    how="inner",
-    on=['Country', 'City', 'Official_Country_Name', 'alpha-3'],
-    sort=True,
-    suffixes=("_x", "_y"),
-    copy=True,
-    indicator=False,
-    validate=None,
-)
+df_geo = fn_merge_data(df_geo, distance_travelled, "inner", merge_columns)
+# Merge time spent travelled
+df_geo = fn_merge_data(df_geo, seconds_spent_travelling, "inner", merge_columns)
+
 # merge country codes onto df + additional metadata
 df_geo = pd.merge(
     df_geo,
@@ -190,65 +167,6 @@ df_geo = pd.merge(
 
 # Metric from df_geo
 max_nights_away = df_geo['Nights away'].max()
-
-
-### Create plotly diagram ###
-def fn_create_scratch_map(scope='world', projection = "natural earth"):
-    st.write()
-
-    fig = px.choropleth(df_geo
-                        , locations="alpha-3"                        
-                        # ,color_continuous_scale=px.colors.sequential.Plasma
-                        # ,color_continuous_scale=px.colors.sequential.swatches_continuous()
-                        , color_continuous_scale="Viridis"
-                        # ,color_discrete_sequence = px.colors.cyclical.swatches
-                        , range_color=(0,max_nights_away)
-                        ,hover_name = 'Country'
-                        ,hover_data = ['Capital', 'Sub-region Name', 'Visits', 'Nights away']
-                        ,color="Nights away"
-                        ,labels={'alpha-3':'Country Code'}
-                        ,basemap_visible = True
-                        # ,fitbounds="locations"
-                        # ,title=scope
-                        ,projection=projection
-                        )
-
-    # Reference: https://plotly.com/python/map-configuration/   - changing the look and feel of the map
-    # fig.update_geos(projection_type="orthographic")
-    fig.update_geos(scope=scope # "africa" | "asia" | "europe" | "north america" | "south america" | "usa" | "world" )
-                    , showframe=True
-                    , framecolor=random.choice(['wheat', 'snow', 'powderblue','midnightblue'])
-                    # , bgcolor="#0E1117"
-                    , bgcolor='rgba(0,0,0,0)'
-                    , resolution=110
-                    , showcountries=True
-                    , countrycolor="grey"
-                    # , showsubunits=True
-                    # , subunitcolor="green"
-                    # , showcoastlines=True, coastlinecolor="light grey"
-                    # , showland=True, landcolor="LightGreen"
-                    # , showocean=True, oceancolor="LightBlue"
-                    # , showlakes=True, lakecolor="white"
-                    # , showrivers=True, rivercolor="Blue"
-                    )
-    fig.update_layout(height=450
-                     ,margin={"r": 0, "t": 0, "l": 0, "b": 0}
-                     
-                     )
-    fig.update_layout(legend=dict(
-                                    orientation="h",
-                                    yanchor="bottom",
-                                    y=-0.1,
-                                    xanchor="center",
-                                    x=0.5
-                            ))
-    fig.update_layout(transition={
-                'duration': 200,
-                'easing': 'circle-in'
-        })
-
-    return fig
-
 
 ################### STREAMLIT - Page #################################
 
@@ -311,22 +229,44 @@ with col_nights_away:
         , sum_nights_away if radio_continent=='🌎' else sum_nights_away_filtered
         , delta=sum_nights_away)
 
-# Scratch Map
+######## Scratch Map ########
+data_on_hover = ['Capital', 'Sub-region Name', 'Visits', 'Nights away'] # list
+rename_cols = {'alpha-3':'Country Code'} # dict
+
+# fn_create_scratch_map(df_geo, "alpha-3", "Country", rename_cols, "Nights away", data_on_hover, scope='world', projection='orthographic')
+
 with st.spinner('Loading...'):
     if radio_continent == '🌎':
-            st.plotly_chart(fn_create_scratch_map(scope='world', projection='orthographic'), use_container_width=True)
+            st.plotly_chart(
+                fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
+                                    , rename_cols, data_on_hover, scope='world', projection='orthographic')
+            )
     elif radio_continent == 'Africa':
-            st.plotly_chart(fn_create_scratch_map(scope='africa'), use_container_width=True)
+            st.plotly_chart(
+                fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
+                                    , rename_cols, data_on_hover, scope='africa')
+            )
     elif radio_continent == 'Asia':
-            st.plotly_chart(fn_create_scratch_map(scope='asia'), use_container_width=True)
+            st.plotly_chart(
+                fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
+                                    , rename_cols, data_on_hover, scope='asia')
+            )
     elif radio_continent == 'Europe':
-            st.plotly_chart(fn_create_scratch_map(scope='europe'), use_container_width=True)
+            st.plotly_chart(
+                fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
+                                    , rename_cols, data_on_hover, scope='europe')
+            )
     elif radio_continent == 'North America':
-            st.plotly_chart(fn_create_scratch_map(scope='north america'), use_container_width=True)                
+            st.plotly_chart(
+                fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
+                                    , rename_cols, data_on_hover, scope='north america')
+            )                
     elif radio_continent == 'South America':
-            st.plotly_chart(fn_create_scratch_map(scope='south america'), use_container_width=True)
+            st.plotly_chart(
+                fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
+                                    , rename_cols, data_on_hover, scope='south america')
+            )             
     elif radio_continent == 'Oceania':
-            # st.plotly_chart(fn_create_scratch_map(scope='oceania'), use_container_width=True)
             st.error('There is no map info in plotly choropleth... Sorry.... but nothing I can do for now.')
     else: st.write()
 
