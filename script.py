@@ -12,7 +12,7 @@ from millify import millify
 ################### STREAMLIT-Config #################
 # App config #
 st.set_page_config(page_title="Flying Pe"
-                    ,page_icon = ":airplane"
+                    ,page_icon = ":airplane:"
                     # ,page_icon=Image.open('')
                     ,layout="centered" 
                     )
@@ -60,13 +60,18 @@ def fn_read_spreadsheet():
 
 df = fn_read_spreadsheet()
 
-### Calculate great-circle distnace for each trip ###
+### Calculate great-circle distance for each trip ###
 df['Departing Coordinates'] = list(zip(df['Latitude'], df['Longitude']))
 df['Arriving Coordinates'] = list(zip(df['Arrival Latitude'], df['Arrival Longitude']))
 df['Distance travelled (km)'] = df.apply(
         lambda x: 
         great_circle(x['Departing Coordinates'], x['Arriving Coordinates']).kilometers
         , axis=1)
+        
+### Calculate time for each trip ###
+df['Destination Start Time'] = pd.to_datetime(df['Destination Start Time'], format="%d/%m/%Y %H:%M:%S")
+df['Destination End Time'] = pd.to_datetime(df['Destination End Time'], format="%d/%m/%Y %H:%M:%S")
+df['Time Spent Travelling (s)'] = (df['Destination End Time'] - df['Destination Start Time']).dt.total_seconds()
 
 #######################################################
 
@@ -130,15 +135,9 @@ distance_travelled = df[["Country", "City", 'Official_Country_Name', 'alpha-3', 
     .groupby(["Country", "City", 'alpha-3', 'Official_Country_Name'])["Distance travelled (km)"] \
     .sum().to_frame().reset_index()
 
-# nights_away = df[["Country", "City", 'Official_Country_Name', 'alpha-3', "Nights away"]] \
-#     .groupby(["Country", "City", 'alpha-3', 'Official_Country_Name']) \
-#     .sum().reset_index()
-
-# nights_away = nights_away['Nights away'].sum()
-
-# print(visits.sample(5))
-# print(nights_away)
-# print(nights_away.sample(5))
+seconds_spent_travelling = df[["Country", "City", 'Official_Country_Name', 'alpha-3', "Time Spent Travelling (s)"]] \
+    .groupby(["Country", "City", 'alpha-3', 'Official_Country_Name'])["Time Spent Travelling (s)"] \
+    .sum().to_frame().reset_index()
 
 ## join on to these dataframes, the alpha 2 country code and the continent code #
 # Merge vists and nights_away
@@ -157,6 +156,18 @@ df_geo = pd.merge(
 df_geo = pd.merge(
     df_geo,
     distance_travelled,
+    how="inner",
+    on=['Country', 'City', 'Official_Country_Name', 'alpha-3'],
+    sort=True,
+    suffixes=("_x", "_y"),
+    copy=True,
+    indicator=False,
+    validate=None,
+)
+# Merge distance travelled
+df_geo = pd.merge(
+    df_geo,
+    seconds_spent_travelling,
     how="inner",
     on=['Country', 'City', 'Official_Country_Name', 'alpha-3'],
     sort=True,
@@ -185,8 +196,8 @@ max_nights_away = df_geo['Nights away'].max()
 def fn_create_scratch_map(scope='world', projection = "natural earth"):
     st.write()
 
-    fig = px.choropleth(df_geo, locations="alpha-3"
-                        
+    fig = px.choropleth(df_geo
+                        , locations="alpha-3"                        
                         # ,color_continuous_scale=px.colors.sequential.Plasma
                         # ,color_continuous_scale=px.colors.sequential.swatches_continuous()
                         , color_continuous_scale="Viridis"
@@ -245,7 +256,9 @@ st.title('Flying Pe')
 st.markdown("***")
 
 # Columns
-col_flights, col_distance, col_countries, col_cities, col_nights_away = st.columns(5, gap='small')
+col_flights, col_distance, col_time = st.columns(3, gap='small')
+col_countries, col_cities, col_nights_away = st.columns(3, gap='small')
+
 # Radio button - select continent
 radio_continent = st.radio(" "
                             ,('🌎', 'Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania')
@@ -259,12 +272,14 @@ st.markdown('***')
 # All places/regions/countries/continents etc.
 cnt_flights = len(df)
 sum_distance_travelled = df['Distance travelled (km)'].sum()
+sum_time_spent_travelling = df['Time Spent Travelling (s)'].sum()/60/60/24 # days
 cnt_countries = df['Country'].nunique()
 cnt_cities = df['City'].nunique()
 sum_nights_away = df['Nights away'].sum()
 # Metrics based on continets
 cnt_flights_filtered = df_geo[df_geo['Continent Name']==radio_continent]['Visits'].sum()
 sum_distance_travelled_filtered = df_geo[df_geo['Continent Name']==radio_continent]['Distance travelled (km)'].sum()
+sum_time_spent_travelling_filtered = df_geo[df_geo['Continent Name']==radio_continent]['Time Spent Travelling (s)'].sum()/60/60/24
 cnt_countries_filtered = df_geo[df_geo['Continent Name']==radio_continent]['Country'].nunique()
 cnt_cities_filtered = df_geo[df_geo['Continent Name']==radio_continent]['City'].nunique()
 sum_nights_away_filtered = df_geo[df_geo['Continent Name']==radio_continent]['Nights away'].sum()
@@ -278,6 +293,11 @@ with col_distance:
     st.metric('Distance (km)'
         , millify(sum_distance_travelled, precision=2) if radio_continent=='🌎' else millify(sum_distance_travelled_filtered, precision=2)
         , delta=millify(sum_distance_travelled, precision=2))
+with col_time:
+    st.metric('Time on :airplane: (days)'
+        , millify(sum_time_spent_travelling, precision=1) if radio_continent=='🌎' else millify(sum_time_spent_travelling_filtered, precision=1)
+        , delta=millify(sum_time_spent_travelling, precision=1))
+
 with col_countries:
     st.metric('Countries Visited'
         , cnt_countries if radio_continent=='🌎' else cnt_countries_filtered
