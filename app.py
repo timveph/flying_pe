@@ -10,7 +10,7 @@ from geopy.distance import great_circle
 from millify import millify
 from scripts.fn_connect_to_spreadsheet import fn_connect_to_spreadsheet
 from scripts.fn_create_scratch_map import fn_create_scratch_map
-
+import datetime
 
 ################### STREAMLIT-Config #################
 # App config #
@@ -31,6 +31,10 @@ st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 ######################################################
 
+# Global Variables
+datetime_now = datetime.datetime.now()
+datetime_in_utc = datetime.datetime.utcnow()
+date_format_in_spreadsheet = "%d/%m/%Y %H:%M:%S"
 
 # Panda options #
 # pd.set_option('display.max_rows', 100)
@@ -46,9 +50,19 @@ def fn_read_spreadsheet():
     worksheet = sh.worksheet(sheet_name)
     df = pd.DataFrame(worksheet.get_all_records())
     df = df[~(df['Flight Number'].isin(['#VALUE!']))] # filter out rows without data
+    df['Destination Start Time'] = pd.to_datetime(df['Destination Start Time'], format=date_format_in_spreadsheet)
+    df['Destination End Time'] = pd.to_datetime(df['Destination End Time'], format=date_format_in_spreadsheet)
+    df['Event Start Date'] = pd.to_datetime(df['Event Start Date'], format="%d/%m/%Y").dt.date
+    df['Event End Date'] = pd.to_datetime(df['Event End Date'], format="%d/%m/%Y").dt.date
+
     return df
 
 df = fn_read_spreadsheet()
+df_past_flights = df[(df['Destination End Time'] < datetime_in_utc)]
+df_todays_flights = df[(df['Event Start Date'] == datetime_in_utc.date()) 
+                        & (df['Event End Date'] >= datetime_in_utc.date())
+                        ] # could be more than 1
+df_future_flights = df[(df['Destination Start Time'] > datetime_in_utc)]
 
 ### Calculate great-circle distance for each trip ###
 df['Departing Coordinates'] = list(zip(df['Latitude'], df['Longitude']))
@@ -59,8 +73,6 @@ df['Distance travelled (km)'] = df.apply(
         , axis=1)
         
 ### Calculate time for each trip ###
-df['Destination Start Time'] = pd.to_datetime(df['Destination Start Time'], format="%d/%m/%Y %H:%M:%S")
-df['Destination End Time'] = pd.to_datetime(df['Destination End Time'], format="%d/%m/%Y %H:%M:%S")
 df['Time Spent Travelling (s)'] = (df['Destination End Time'] - df['Destination Start Time']).dt.total_seconds()
 
 #######################################################
@@ -274,6 +286,14 @@ with st.spinner('Loading...'):
 # st.dataframe(df)
 with st.expander('Click to see data... (for debugging)'):
     st.dataframe(df)
+    st.write("Past flights")
+    st.dataframe(df_past_flights)
+    st.write(datetime_now, datetime_in_utc)
+    st.write(datetime_now.date())
+    st.write("Today's flights")
+    st.dataframe(df_todays_flights)
+    st.write("Upcoming flights")
+    st.dataframe(df_future_flights)
     st.dataframe(df_geo)
 # st.dataframe(df_country_codes)
 # st.dataframe(fn_country_code_data())
