@@ -58,11 +58,6 @@ def fn_read_spreadsheet():
     return df
 
 df = fn_read_spreadsheet()
-df_past_flights = df[(df['Destination End Time'] < datetime_in_utc)]
-df_todays_flights = df[(df['Event Start Date'] == datetime_in_utc.date()) 
-                        & (df['Event End Date'] >= datetime_in_utc.date())
-                        ] # could be more than 1
-df_future_flights = df[(df['Destination Start Time'] > datetime_in_utc)]
 
 ### Calculate great-circle distance for each trip ###
 df['Departing Coordinates'] = list(zip(df['Latitude'], df['Longitude']))
@@ -76,7 +71,6 @@ df['Distance travelled (km)'] = df.apply(
 df['Time Spent Travelling (s)'] = (df['Destination End Time'] - df['Destination Start Time']).dt.total_seconds()
 
 #######################################################
-
 
 ### Read in country codes + other (maybe) useful data ###
 
@@ -119,31 +113,39 @@ df_country_codes = pd.merge(
 
 #######################################################
 
+#### Slices of data ####
+df_past_flights = df[(df['Destination End Time'] < datetime_in_utc)]
+df_todays_flights = df[(df['Event Start Date'] == datetime_in_utc.date()) 
+                        & (df['Event End Date'] >= datetime_in_utc.date())
+                        ] # could be more than 1
+df_future_flights = df[(df['Destination Start Time'] > datetime_in_utc)]
+#######################################################
+
 
 ### Calculate frequency of trips by various categories ###
 # Times visited & Days spent
 
-visits = df[["Country", "City", 'Official_Country_Name', 'alpha-3']] \
+visits = df_past_flights[["Country", "City", 'Official_Country_Name', 'alpha-3']] \
     .groupby(["Country", "City", 'Official_Country_Name', 'alpha-3']) \
     .size().to_frame().reset_index()
 visits.rename(columns={0: 'Visits'}, inplace=True)
 
-nights_away = df[["Country", "City", 'Official_Country_Name', 'alpha-3', "Nights away"]] \
+nights_away = df_past_flights[["Country", "City", 'Official_Country_Name', 'alpha-3', "Nights away"]] \
     .groupby(["Country", "City", 'alpha-3', 'Official_Country_Name'])["Nights away"] \
     .sum().to_frame().reset_index()
 
-distance_travelled = df[["Country", "City", 'Official_Country_Name', 'alpha-3', "Distance travelled (km)"]] \
+distance_travelled = df_past_flights[["Country", "City", 'Official_Country_Name', 'alpha-3', "Distance travelled (km)"]] \
     .groupby(["Country", "City", 'alpha-3', 'Official_Country_Name'])["Distance travelled (km)"] \
     .sum().to_frame().reset_index()
 
-seconds_spent_travelling = df[["Country", "City", 'Official_Country_Name', 'alpha-3', "Time Spent Travelling (s)"]] \
+seconds_spent_travelling = df_past_flights[["Country", "City", 'Official_Country_Name', 'alpha-3', "Time Spent Travelling (s)"]] \
     .groupby(["Country", "City", 'alpha-3', 'Official_Country_Name'])["Time Spent Travelling (s)"] \
     .sum().to_frame().reset_index()
 
 ## join on to these dataframes, the alpha 2 country code and the continent code #
 # Merge vists and nights_away
 def fn_merge_data(left_tbl, right_tbl, merge_how, merge_on=[]):
-    df = pd.merge(
+    df_merged = pd.merge(
             left_tbl,
             right_tbl,
             how=merge_how,
@@ -154,7 +156,7 @@ def fn_merge_data(left_tbl, right_tbl, merge_how, merge_on=[]):
             indicator=False,
             validate=None,
     )
-    return df
+    return df_merged
 
 merge_columns = ['Country', 'City', 'Official_Country_Name', 'alpha-3']
 
