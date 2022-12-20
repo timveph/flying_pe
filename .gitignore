@@ -2,3 +2,5 @@ env
 .streamlit/secrets.toml
 service_account.json
 lib
+_temp/
+scripts/__pycache__/
