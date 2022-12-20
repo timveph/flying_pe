@@ -9,3 +9,5 @@ dataprep
 plotly.express
 geopy==2.3.0
 millify
+requests
+opensky-api
