@@ -11,12 +11,13 @@ from millify import millify
 from scripts.fn_connect_to_spreadsheet import fn_connect_to_spreadsheet
 from scripts.fn_create_scratch_map import fn_create_scratch_map
 import datetime
+from PIL import Image
 
 ################### STREAMLIT-Config #################
 # App config #
 st.set_page_config(page_title="Flying Pe"
-                    ,page_icon = ":airplane:"
-                    # ,page_icon=Image.open('')
+                    ,page_icon = "images/Flying_Pe.png"
+                    # ,page_icon=Image.open('image/Flying_Pe.png'))
                     ,layout="centered" 
                     )
 
@@ -184,8 +185,21 @@ max_nights_away = df_geo['Nights away'].max()
 
 ################### STREAMLIT - Page #################################
 
-st.title('Flying Pe')
+# st.title('Flying Pe')
+col_img1, col_img2, col_img3 = st.columns([1,3,1])
+with col_img2:
+    banner_image = Image.open("./images/cartoon_Pe_banner.png")
+    banner_image = banner_image.resize((349, 90))
+    st.image(banner_image)
+
 st.markdown("***")
+
+# containers 
+con_current_flight = st.container()
+con_next_flight = st.container()
+con_metrics = st.container()
+con_map = st.container()
+
 
 # Columns
 col_flights, col_distance, col_time = st.columns(3, gap='small')
@@ -283,6 +297,41 @@ with st.spinner('Loading...'):
     elif radio_continent == 'Oceania':
             st.error('There is no map info in plotly choropleth... Sorry.... but nothing I can do for now.')
     else: st.write()
+
+
+import re
+with con_current_flight:
+    flight_no_str = df_todays_flights['Flight Number'].to_string(index=False)
+    flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
+
+    flight_iata = 'BA122'
+
+    # st.text(flight_iata)
+
+    import requests
+    import json
+
+    params = {
+    'api_key': st.secrets["airLabsApiKey"],
+    'flight_iata': flight_iata
+    }
+    # method = 'ping' - use this to get metadata info about account e.g. how many calls left this month, day, hour
+    method = 'flight' # flight
+    api_base = 'http://airlabs.co/api/v9/'
+    api_result = requests.get(api_base+method, params)
+    api_response = api_result.json()
+
+    # st.write(json.dumps(api_response, indent=4, sort_keys=True))
+
+    # get hex value --> make request to OpenSky-Network API (requests.get("https://opensky-network.org/api/states/all?time=0&icao24=[hex value]"))
+    # free: 
+    #   https://developer.flightstats.com/getting-started/ (20,000 calls lifetime limit)
+        # aviationstack - 100 to 500 calls per month
+        # OPen Sky - free but complicated, maybe not reliable
+        # Flightaware aeroapi - free $5 credit each month (how can I track this and not go above $5 in a month)
+        # FlightLabs - 100 calls per month
+        # scrape from BA's website https://www.britishairways.com/travel/flightstatus/public/en_us/results/loaded?searchMethod=flight&date=2022-12-19&isDepartures=true&flightNumber=139
+
 
 # Dataframe
 # st.dataframe(df)
