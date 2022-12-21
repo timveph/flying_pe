@@ -13,8 +13,8 @@ def fn_connect_to_spreadsheet():
     )
     client = Client(scope=scope, creds=credentials)
     spreadsheet_name = 'py_flight_data'
-    sheet_name = 'flightDataset'
-    spread = Spread(spreadsheet_name, client = client)
+    # sheet_name = 'flightDataset'
+    # spread = Spread(spreadsheet_name, client = client)
 
     # Call our spreadsheet
     sh = client.open(spreadsheet_name)
