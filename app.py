@@ -85,9 +85,9 @@ df_country_codes = pd.merge(
 
 #### Slices of data ####
 df_past_flights = df[(df['Destination End Time'] < datetime_in_utc)]
-df_todays_flights = df[(df['Event Start Date'] == datetime_in_utc.date()) 
-                        | (df['Event End Date'] == datetime_in_utc.date())
-                        ] # could be more than 1
+# df_todays_flights = df[(df['Event Start Date'] == datetime_in_utc.date()) 
+#                         | (df['Event End Date'] == datetime_in_utc.date())
+#                         ] # could be more than 1
 df_future_flights = df[(df['Destination Start Time'] > datetime_in_utc)]
 #######################################################
 
@@ -278,8 +278,8 @@ with st.expander('Click to see data... (for debugging)'):
     st.dataframe(df_past_flights)
     st.write(datetime_now, datetime_in_utc)
     st.write(datetime_now.date())
-    st.write("Today's flights")
-    st.dataframe(df_todays_flights)
+    # st.write("Today's flights")
+    # st.dataframe(df_todays_flights)
     st.write("Upcoming flights")
     st.dataframe(df_future_flights)
     st.dataframe(df_geo)
