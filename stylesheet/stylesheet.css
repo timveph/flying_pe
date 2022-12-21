@@ -1,0 +1,69 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap');  */
+
+@font-face {
+    font-family: '7ledregular';
+    src: url('fonts/7led-webfont.woff2') format('woff2'),
+         url('fonts/7led-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: '7led_italicregular';
+    src: url('fonts/7leditalic-webfont.woff2') format('woff2'),
+         url('fonts/7leditalic-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'the_led_display_stregular';
+    src: url('fonts/led_display-webfont.woff2') format('woff2'),
+         url('fonts/led_display-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'llpixelregular';
+    src: url('fonts/llpixel3-webfont.woff2') format('woff2'),
+         url('fonts/llpixel3-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+
+@font-face {
+    font-family: 'skyfont';
+    src: url('../stylesheet/fonts/skyfont-webfont.woff2') format('woff2'),
+         url('../stylesheet/fonts/skyfont-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@import url('../stylesheet/fonts/skyfont-webfont.woff');
+
+body, h1, h2, p, [class*="css"]{ 
+    font-family: '7ledregular', '7led_italicregular'
+                , 'llpixelregular', 'the_led_display_stregular', 'skyfont'
+                , sans-serif;
+    color: #fafafa
+}
+
+/* html, body, [class*="css"] {
+    font-family: 'skyfont', sans-serif; 
+    /* font-size: 18px;
+    font-weight: 500; */
+    /* color: #FFF;
+} */ 
