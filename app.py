@@ -8,29 +8,15 @@ import plotly.express as px
 from dataprep.clean import clean_country
 from geopy.distance import great_circle
 from millify import millify
-from scripts.fn_connect_to_spreadsheet import fn_connect_to_spreadsheet
 from scripts.fn_create_scratch_map import fn_create_scratch_map
+from scripts.fn_read_spreadsheet import fn_read_spreadsheet
 import datetime
 from PIL import Image
+import scripts.fn_config_streamlit_pages as config
 
-################### STREAMLIT-Config #################
-# App config #
-st.set_page_config(page_title="Flying Pe"
-                    ,page_icon = "images/Flying_Pe.png"
-                    # ,page_icon=Image.open('image/Flying_Pe.png'))
-                    ,layout="centered" 
-                    )
+config.fn_set_page_title("Flying Pe")
+config.fn_apply_css()
 
-# Hide menu & footer
-hide_menu_style = """
-                    <style>
-                    #MainMenu {visibility: visible; }
-                    footer {visibility: hidden;}
-                    </style>
-        """
-st.markdown(hide_menu_style, unsafe_allow_html=True)
-
-######################################################
 
 # Global Variables
 datetime_now = datetime.datetime.now()
@@ -40,23 +26,6 @@ date_format_in_spreadsheet = "%d/%m/%Y %H:%M:%S"
 # Panda options #
 # pd.set_option('display.max_rows', 100)
 # pd.set_option('display.max_columns', None)
-
-# Connect to spreadsheet
-sh = fn_connect_to_spreadsheet()
-sheet_name = 'flightDataset'
-
-### READ SPREADSHEET ###
-@st.experimental_memo()
-def fn_read_spreadsheet():
-    worksheet = sh.worksheet(sheet_name)
-    df = pd.DataFrame(worksheet.get_all_records())
-    df = df[~(df['Flight Number'].isin(['#VALUE!']))] # filter out rows without data
-    df['Destination Start Time'] = pd.to_datetime(df['Destination Start Time'], format=date_format_in_spreadsheet)
-    df['Destination End Time'] = pd.to_datetime(df['Destination End Time'], format=date_format_in_spreadsheet)
-    df['Event Start Date'] = pd.to_datetime(df['Event Start Date'], format="%d/%m/%Y").dt.date
-    df['Event End Date'] = pd.to_datetime(df['Event End Date'], format="%d/%m/%Y").dt.date
-
-    return df
 
 df = fn_read_spreadsheet()
 
@@ -117,7 +86,7 @@ df_country_codes = pd.merge(
 #### Slices of data ####
 df_past_flights = df[(df['Destination End Time'] < datetime_in_utc)]
 df_todays_flights = df[(df['Event Start Date'] == datetime_in_utc.date()) 
-                        & (df['Event End Date'] >= datetime_in_utc.date())
+                        | (df['Event End Date'] == datetime_in_utc.date())
                         ] # could be more than 1
 df_future_flights = df[(df['Destination Start Time'] > datetime_in_utc)]
 #######################################################
@@ -185,21 +154,21 @@ max_nights_away = df_geo['Nights away'].max()
 
 ################### STREAMLIT - Page #################################
 
-# st.title('Flying Pe')
-col_img1, col_img2, col_img3 = st.columns([1,3,1])
-with col_img2:
-    banner_image = Image.open("./images/cartoon_Pe_banner.png")
-    banner_image = banner_image.resize((349, 90))
-    st.image(banner_image)
-
-st.markdown("***")
-
 # containers 
-con_current_flight = st.container()
+con_banner = st.container()
 con_next_flight = st.container()
 con_metrics = st.container()
 con_map = st.container()
 
+# st.title('Flying Pe')
+with con_banner:
+    col_img1, col_img2, col_img3 = st.columns([1,3,1])
+    with col_img2:
+        banner_image = Image.open("./images/cartoon_Pe_banner.png")
+        banner_image = banner_image.resize((349, 90))
+        st.image(banner_image)
+
+# st.markdown("***")
 
 # Columns
 col_flights, col_distance, col_time = st.columns(3, gap='small')
@@ -299,38 +268,6 @@ with st.spinner('Loading...'):
     else: st.write()
 
 
-import re
-with con_current_flight:
-    flight_no_str = df_todays_flights['Flight Number'].to_string(index=False)
-    flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
-
-    flight_iata = 'BA122'
-
-    # st.text(flight_iata)
-
-    import requests
-    import json
-
-    params = {
-    'api_key': st.secrets["airLabsApiKey"],
-    'flight_iata': flight_iata
-    }
-    # method = 'ping' - use this to get metadata info about account e.g. how many calls left this month, day, hour
-    method = 'flight' # flight
-    api_base = 'http://airlabs.co/api/v9/'
-    api_result = requests.get(api_base+method, params)
-    api_response = api_result.json()
-
-    # st.write(json.dumps(api_response, indent=4, sort_keys=True))
-
-    # get hex value --> make request to OpenSky-Network API (requests.get("https://opensky-network.org/api/states/all?time=0&icao24=[hex value]"))
-    # free: 
-    #   https://developer.flightstats.com/getting-started/ (20,000 calls lifetime limit)
-        # aviationstack - 100 to 500 calls per month
-        # OPen Sky - free but complicated, maybe not reliable
-        # Flightaware aeroapi - free $5 credit each month (how can I track this and not go above $5 in a month)
-        # FlightLabs - 100 calls per month
-        # scrape from BA's website https://www.britishairways.com/travel/flightstatus/public/en_us/results/loaded?searchMethod=flight&date=2022-12-19&isDepartures=true&flightNumber=139
 
 
 # Dataframe
