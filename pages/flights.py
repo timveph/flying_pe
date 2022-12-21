@@ -55,60 +55,64 @@ def fn_flight_tracking_info(adict):
 
 
 
-# try:
-flight_no_str = df_todays_flights['Flight Number'].to_string(index=False)
-flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
-# flight_iata = 'BA249'
-api_data = fn_query_airlabs_api('flight', flight_iata)
-a = json.loads(api_data)
-flight_info = fn_flight_tracking_info(a['response'])
+try:
+    flight_no_str = df_todays_flights['Flight Number'].to_string(index=False)
+    flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
+    # flight_iata = 'BA249'
+    api_data = fn_query_airlabs_api('flight', flight_iata)
+    a = json.loads(api_data)
+    flight_info = fn_flight_tracking_info(a['response'])
 
-# except:
-    # flight_info = "Pe is grounded! Check back tomorrow!"
+except:
+    st.write("Pe is grounded! Check back tomorrow!")
 
-with st.expander("debugging info..."):
-    st.text(flight_iata)
-    st.write(a.keys())
-    st.write(fn_flight_tracking_info(a['response']))
-    # data = fn_query_airlabs_api('flights', flight_iata)
-    # st.write(json.loads(data)['response']) 
-    # st.write(a)
-
-con_current_flight = st.container()
-
-with con_current_flight:
+try:
+    with st.expander("debugging info..."):
+            st.text(flight_iata)
+            st.write(a.keys())
+            st.write(fn_flight_tracking_info(a['response']))
+            # data = fn_query_airlabs_api('flights', flight_iata)
+            # st.write(json.loads(data)['response']) 
+            # st.write(a)
 
 
-    col_start, col_status, col_end = st.columns([1,5,1])
-    with col_start:
-        st.markdown(f"**{flight_info['dep_city']}**")
-        st.markdown(f"**{flight_info['dep_actual_utc'] or flight_info['dep_time_utc']}**")
+    con_current_flight = st.container()
+
+    with con_current_flight:
+
+
+        col_start, col_status, col_end = st.columns([1,5,1])
+        with col_start:
+            st.markdown(f"**{flight_info['dep_city']}**")
+            st.markdown(f"**{flight_info['dep_actual_utc'] or flight_info['dep_time_utc']}**")
+            
         
-    
-    with col_status:
-        duration = '{:02d}H{:02d}m'.format(*divmod(flight_info['duration'], 60)) 
-        eta = '{:02d}H{:02d}m'.format(*divmod(flight_info['eta'], 60)) 
-        if flight_info['status'] == 'scheduled':
-            st.write(flight_info['status'])
-        elif flight_info['status'] == 'en-route':
-            st.progress(flight_info['percent'])
-            st.markdown(f"""
-            <center>Duration: {duration} 
-            <br>Time left: {eta}</center>
-            """, unsafe_allow_html=True)
-        elif flight_info['status'] == 'landed':
-            st.write(flight_info['status'])
-        else: 
-            st.write('')
+        with col_status:
+            duration = '{:02d}H{:02d}m'.format(*divmod(flight_info['duration'], 60)) 
+            eta = '{:02d}H{:02d}m'.format(*divmod(flight_info['eta'], 60)) 
+            if flight_info['status'] == 'scheduled':
+                st.write(flight_info['status'])
+            elif flight_info['status'] == 'en-route':
+                st.progress(flight_info['percent'])
+                st.markdown(f"""
+                <center>Duration: {duration} 
+                <br>Time left: {eta}</center>
+                """, unsafe_allow_html=True)
+            elif flight_info['status'] == 'landed':
+                st.write(flight_info['status'])
+            else: 
+                st.write('')
 
 
-    with col_end:
-        st.markdown(f"**{flight_info['arr_city']}**")
-        st.markdown(f"**{flight_info['arr_actual_utc'] or flight_info['arr_time_utc']}**")
-        
+        with col_end:
+            st.markdown(f"**{flight_info['arr_city']}**")
+            st.markdown(f"**{flight_info['arr_actual_utc'] or flight_info['arr_time_utc']}**")
+            
 
-st.markdown("<br><br><sub> Note: Flight info delayed by 15 minutes </sub>", unsafe_allow_html=True)
+    st.markdown("<br><br><sub> Note: Flight info delayed by 15 minutes </sub>", unsafe_allow_html=True)
 
+except:
+    st.write("no flight data i.e. no current flight i.e. no flight today")
 
 # subset = {'a': 2, 'b': 8, 'c': ''}
 # gap_subset = {'a': 2, 'b': '', 'c': ''}
