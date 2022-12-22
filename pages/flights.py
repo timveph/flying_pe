@@ -1,23 +1,30 @@
 import re
 import json
 import datetime
+import asyncio
 import streamlit as st
+from streamlit_echarts import st_echarts
 from scripts.fn_read_spreadsheet import fn_read_spreadsheet
-from scripts.fn_query_airlabs_api import fn_query_airlabs_api
+# from scripts.fn_query_airlabs_api import fn_query_airlabs_api
+import scripts.fn_query_airlabs_api as airlabs
 import scripts.fn_config_streamlit_pages as config
+from charts.chart_speed import chart_speed
 
 config.fn_set_page_title("Tracking")
 config.fn_apply_css()
+# with open( "stylesheet/stylesheet.css" ) as css:
+#     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
 
 # variables
 datetime_in_utc = datetime.datetime.utcnow()
 
 # How many requests do I have left this month
-requests_left = json.loads(fn_query_airlabs_api('ping'))
-st.write(f"Number of queries left: {requests_left['request']['key']['limits_total']}")
+requests_left = json.loads(airlabs.fn_query_airlabs_api('ping'))
+st.markdown(f"Number of queries left: {requests_left['request']['key']['limits_total']}",unsafe_allow_html=True)
 
 
+#### Get data from spreadsheet ####
 try:
     df = fn_read_spreadsheet()
     df_todays_flights = df[(df['Event Start Date'] == datetime_in_utc.date()) 
@@ -27,73 +34,59 @@ except:
     st.write("Please refresh the page")
 
 
-### Data processing ###
 
-def fn_flight_tracking_info(adict):
-    list_of_keys_from_flight = ['alt', 'arr_city', 'arr_time_utc', 'arr_actual_utc', 'dep_actual_utc', 'dep_time_utc'
-                                , 'dep_city', 'dir', 'duration', 'eta', 'hex', 'lat', 'lng', 'percent', 'speed'
-                                , 'status', 'updated']
-    list_of_keys_from_flights = ['alt', 'dir', 'hex','lat', 'lng', 'speed', 'status', 'updated']
-
-    subset = {key: adict[key] for key in list_of_keys_from_flight}
-    if None in subset.values(): # first test if subset has null values for any keys
-        gap_list = []
-        for key in list_of_keys_from_flights: # if so, loop through list of keys from flightS and ...
-            if subset[key]: # check if any of those keys are null in the subset
-                continue
-            else: # If they are, make a list of keys needed
-                gap_list.append(key)
-        data = fn_query_airlabs_api('flights', flight_iata) # make another call to the API but with different method
-        dict_flights = json.loads(data)['response'] # get dict
-        gap_subset = {key: dict_flights[key] for key in gap_list} # keep only the missing fields
-        subset = dict(list(gap_subset.items()) + list(subset.items())) 
-    else:
-        print('') # do nothing
-
-
-    return subset
-
-
-
+#### Get flight number from spreadsheet ####
+### Call API and get flight info ###
 try:
     flight_no_str = df_todays_flights['Flight Number'].to_string(index=False)
     flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
-    # flight_iata = 'BA249'
-    api_data = fn_query_airlabs_api('flight', flight_iata)
+    api_data = airlabs.fn_query_airlabs_api('flight', flight_iata)
     a = json.loads(api_data)
-    flight_info = fn_flight_tracking_info(a['response'])
+    flight_info = airlabs.fn_flight_tracking_info(a['response'], flight_iata)
 
 except:
     st.write("Pe is grounded! Check back tomorrow!")
 
+    # temp - Get a temporary flight - provide the flight number of a flight currently flying
+    flight_iata = 'BA244'
+    api_data = airlabs.fn_query_airlabs_api('flight', flight_iata)
+    a = json.loads(api_data)
+    flight_info = airlabs.fn_flight_tracking_info(a['response'], flight_iata)
+    st.write(f"Last updated: {flight_info['updated']}")
+
+
+with st.expander("debugging info..."):
+        st.text(flight_iata)
+        st.write(a.keys())
+        st.write(flight_info)
+        # data = fn_query_airlabs_api('flights', flight_iata)
+        # st.write(json.loads(data)['response']) 
+        # st.write(a)
+
 try:
-    with st.expander("debugging info..."):
-            st.text(flight_iata)
-            st.write(a.keys())
-            st.write(fn_flight_tracking_info(a['response']))
-            # data = fn_query_airlabs_api('flights', flight_iata)
-            # st.write(json.loads(data)['response']) 
-            # st.write(a)
-
-
     con_current_flight = st.container()
-
     with con_current_flight:
-
-
         col_start, col_status, col_end = st.columns([1,5,1])
         with col_start:
             st.markdown(f"**{flight_info['dep_city']}**")
-            st.markdown(f"**{flight_info['dep_actual_utc'] or flight_info['dep_time_utc']}**")
-            
+            st.markdown(f"""**{flight_info['dep_actual_utc'] 
+                                or flight_info['dep_time_utc'] 
+                                or flight_info['dep_time']}**
+                        """)          
         
         with col_status:
-            duration = '{:02d}H{:02d}m'.format(*divmod(flight_info['duration'], 60)) 
-            eta = '{:02d}H{:02d}m'.format(*divmod(flight_info['eta'], 60)) 
+            try:
+                duration = '{:02d}H{:02d}m'.format(*divmod(flight_info['duration'], 60))
+                eta = '{:02d}H{:02d}m'.format(*divmod(flight_info['eta'], 60)) 
+            except TypeError:
+                st.write("duration and eta data is not available from the API")
+                duration = '0'
+                eta = '0'
+                
             if flight_info['status'] == 'scheduled':
                 st.write(flight_info['status'])
             elif flight_info['status'] == 'en-route':
-                st.progress(flight_info['percent'])
+                st.progress(flight_info['percent'] or 0)
                 st.markdown(f"""
                 <center>Duration: {duration} 
                 <br>Time left: {eta}</center>
@@ -106,8 +99,10 @@ try:
 
         with col_end:
             st.markdown(f"**{flight_info['arr_city']}**")
-            st.markdown(f"**{flight_info['arr_actual_utc'] or flight_info['arr_time_utc']}**")
-            
+            st.markdown(f"""**{flight_info['arr_actual_utc'] 
+                            or flight_info['arr_time_utc']
+                            or flight_info['arr_time']}**
+                        """)            
 
     st.markdown("<br><br><sub> Note: Flight info delayed by 15 minutes </sub>", unsafe_allow_html=True)
 
@@ -121,9 +116,41 @@ except:
 
 
 
+# A countdown timer for flight_info['eta']
+async def eta_countdown(eta):
+    # Needs some error handling if 'eta' is None or zero or undefined
+    n = flight_info['eta']
+    n = 5
+    for secs in range(n, 0, -1):
+        mm, ss = secs//60, secs%60
+        eta.metric("Arriving in...", f"{mm:02d}:{ss:02d}")
+        r = await asyncio.sleep(1)
 
-# st.write(a)
+
+col_speed, col_altitude = st.columns(2)
+with col_speed:
+    speed_chart = chart_speed(flight_info['speed'])
+    st_echarts(
+        options=speed_chart
+        # theme= Union[str, Dict]
+        # ,events={"click" : "function () {myChart.setOption({'series': [{'data': [{'value': +(Math.random() * 1000).toFixed(2)}]}]});}, 2000)"
+        #         }
+        ,renderer="svg"
+        # map: Map
+        ,key="guage_speed"
+        # ,height="250px"
+        # ,width=""
+    )
+with col_altitude:
+    st.metric('Altitude', flight_info['alt'])
+    eta = st.empty()
+    asyncio.run(eta_countdown(eta))
     
+    
+
+
+
+
 
     
 
