@@ -59,9 +59,12 @@ def fn_flight_tracking_info(adict, flight_iata):
             else: # If they are, make a list of keys needed
                 gap_list.append(key)
         data = fn_query_airlabs_api('flights', flight_iata) # make another call to the API but with different method
-        dict_flights = json.loads(data)['response'] # get dict
-        gap_subset = {key: dict_flights[key] for key in gap_list} # keep only the missing fields
-        subset = dict(list(gap_subset.items()) + list(subset.items())) 
+        if len(json.loads(data)['response']) == 0:
+            print(">>> No data from 'flights'")
+        else: 
+            dict_flights = json.loads(data)['response'] # get dict        
+            gap_subset = {key: dict_flights[key] for key in gap_list} # keep only the missing fields
+            subset = dict(list(gap_subset.items()) + list(subset.items())) 
     else:
         print('') # do nothing
 
