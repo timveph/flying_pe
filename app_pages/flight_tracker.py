@@ -147,17 +147,5 @@ def app():
         st.caption(f"Number of queries left: {requests_left['request']['key']['limits_total']}",unsafe_allow_html=True)
 
     
-
-# except:
-#     st.write("Pe is grounded! Check back tomorrow to see if she has her wings back!")
-    ## For testing purposes ###
-    # st.write('for testing purposes...')
-    # flight_iata = 'BA81'
-    # departing_coordinates = (51.4706,-0.461941)
-    # api_data = airlabs.fn_query_airlabs_api('flight', flight_iata)
-    # a = json.loads(api_data)
-    # flight_info = airlabs.fn_flight_tracking_info(a['response'], flight_iata)
-    # last_updated_time = time.strftime("%Y-%m-%d %H:%M", time.localtime(flight_info['updated']))
-    # st.write(f"Last updated: {last_updated_time}")
-
+# 2. Instead of showing text if flight info doesn't exist, show the next flight
 # 3. Probably need some additional error handling
