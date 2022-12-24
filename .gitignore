@@ -5,4 +5,5 @@ lib
 _temp/
 scripts/__pycache__
 charts/__pycache__
-
+charts
+app_pages/__pycache__
