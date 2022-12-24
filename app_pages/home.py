@@ -231,17 +231,17 @@ def app():
 
     # Dataframe
     # st.dataframe(df)
-    with st.expander('Click to see data... (for debugging)'):
-        st.dataframe(df)
-        st.write("Past flights")
-        st.dataframe(df_past_flights)
-        st.write(datetime_now, datetime_in_utc)
-        st.write(datetime_now.date())
-        st.write("Today's flights")
-        st.dataframe(df_todays_flights)
-        st.write("Upcoming flights")
-        st.dataframe(df_future_flights)
-        st.dataframe(df_geo)
+    # with st.expander('Click to see data... (for debugging)'):
+    #     st.dataframe(df)
+    #     st.write("Past flights")
+    #     st.dataframe(df_past_flights)
+    #     st.write(datetime_now, datetime_in_utc)
+    #     st.write(datetime_now.date())
+    #     st.write("Today's flights")
+    #     st.dataframe(df_todays_flights)
+    #     st.write("Upcoming flights")
+    #     st.dataframe(df_future_flights)
+    #     st.dataframe(df_geo)
     # st.dataframe(df_country_codes)
     # st.dataframe(fn_country_code_data())
 
