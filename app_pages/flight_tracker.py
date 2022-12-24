@@ -6,10 +6,8 @@ import time
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from streamlit_echarts import st_echarts
 # from scripts.fn_query_airlabs_api import fn_query_airlabs_api
 import scripts.fn_query_airlabs_api as airlabs
-import scripts.fn_config_streamlit_pages as config
 from scripts.fn_calc_distance import fn_calc_distance
 from scripts.fn_create_maps import fn_create_track_map
 from scripts.fn_data_prep import fn_data_attributes
