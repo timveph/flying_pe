@@ -1,5 +1,6 @@
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import random
 
 ### Create plotly diagram ###
@@ -29,7 +30,7 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, hov
                     , framecolor=random.choice(['wheat', 'snow', 'powderblue','midnightblue'])
                     # , bgcolor="#0E1117"
                     , bgcolor='rgba(0,0,0,0)'
-                    , resolution=110
+                    , resolution=110 # this takes longer to render - slows page load
                     , showcountries=True
                     , countrycolor="grey"
                     # , showsubunits=True
@@ -55,5 +56,60 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, hov
                 'duration': 200,
                 'easing': 'circle-in'
         })
+
+    return fig
+
+
+def fn_create_track_map(list_lat, list_lon):
+    random_color = random.choice(['wheat', 'snow', 'white', 'ivory'])
+    fig = go.Figure(data=go.Scattergeo(
+        lat = list_lat, # lat [from, to]
+        lon = list_lon, # lon [from, to]
+        mode = 'lines+markers',
+        line = dict(width = 3,
+            color = random_color
+            ,dash = "dashdot"
+            ),
+        marker = dict(
+            color = (random_color, random_color)
+            ,symbol = ('circle-open-dot','circle-dot')
+            ,size = (10,15)
+        )
+        
+    ))
+
+    fig.update_layout(
+        # title_text = f"{flight_info['dep_city']} to {flight_info['arr_city']}",
+        showlegend = False,
+        autosize = False,
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        geo = dict(
+            fitbounds = "locations", # geojson
+            resolution = 110, # this takes longer to render - slows page load
+            bgcolor='rgba(0,0,0,0)',
+            # showland = True,
+            # showlakes = True,
+            # landcolor = 'rgb(204, 204, 204)',
+            showcountries=True,
+            countrycolor = 'grey',
+            # lakecolor = 'rgb(255, 255, 255)',
+            projection_type = "equirectangular",
+            # projection_type = "natural earth",
+            # projection_type = "orthographic",
+            # projection_scale = 2,
+            scope="world",
+            # coastlinewidth = 2,
+            # lataxis = dict(
+            #     range = [10, 80],
+            #     # showgrid = True,
+            #     # dtick = 10
+            # ),
+            # lonaxis = dict(
+            #     range = [-0.3, -90],
+            #     # showgrid = True,
+            #     # dtick = 20
+            #     ),
+            )
+    ) 
 
     return fig
