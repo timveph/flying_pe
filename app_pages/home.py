@@ -181,7 +181,7 @@ def app():
     ################## Scratch Map #########################################
     data_on_hover = ['Capital', 'Sub-region Name', 'Visits', 'Nights away'] # list
     rename_cols = {'alpha-3':'Country Code'} # dict
-    config = {'displayModeBar': False}
+    config = {'displayModeBar': False, 'responsive': True}
 
     with st.spinner('Loading...'):
         if radio_continent == '🌎':
@@ -189,36 +189,42 @@ def app():
                     fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
                                         , rename_cols, data_on_hover, scope='world', projection='orthographic')
                     ,config=config
+                    ,use_container_width=True
                 )
         elif radio_continent == 'Africa':
                 st.plotly_chart(
                     fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
                                         , rename_cols, data_on_hover, scope='africa')
                     ,config=config
+                    ,use_container_width=True
                 )
         elif radio_continent == 'Asia':
                 st.plotly_chart(
                     fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
                                         , rename_cols, data_on_hover, scope='asia')
                     ,config=config
+                    ,use_container_width=True
                 )
         elif radio_continent == 'Europe':
                 st.plotly_chart(
                     fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
                                         , rename_cols, data_on_hover, scope='europe')
                     ,config=config
+                    ,use_container_width=True
                 )
         elif radio_continent == 'North America':
                 st.plotly_chart(
                     fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
                                         , rename_cols, data_on_hover, scope='north america')
                     ,config=config
+                    ,use_container_width=True
                 )                
         elif radio_continent == 'South America':
                 st.plotly_chart(
                     fn_create_scratch_map(df_geo, "alpha-3", "Country", "Nights away"
                                         , rename_cols, data_on_hover, scope='south america')
                     ,config=config
+                    ,use_container_width=True
                 )             
         elif radio_continent == 'Oceania':
                 st.error('There is no map info in plotly choropleth... Sorry.... but nothing I can do for now.')
@@ -231,17 +237,17 @@ def app():
 
     # Dataframe
     # st.dataframe(df)
-    with st.expander('Click to see data... (for debugging)'):
-        st.dataframe(df)
-        st.write("Past flights")
-        st.dataframe(df_past_flights)
-        st.write(datetime_now, datetime_in_utc)
-        st.write(datetime_now.date())
-        st.write("Today's flights")
-        st.dataframe(df_todays_flights)
-        st.write("Upcoming flights")
-        st.dataframe(df_future_flights)
-        st.dataframe(df_geo)
+    # with st.expander('Click to see data... (for debugging)'):
+    #     st.dataframe(df)
+    #     st.write("Past flights")
+    #     st.dataframe(df_past_flights)
+    #     st.write(datetime_now, datetime_in_utc)
+    #     st.write(datetime_now.date())
+    #     st.write("Today's flights")
+    #     st.dataframe(df_todays_flights)
+    #     st.write("Upcoming flights")
+    #     st.dataframe(df_future_flights)
+    #     st.dataframe(df_geo)
     # st.dataframe(df_country_codes)
     # st.dataframe(fn_country_code_data())
 
