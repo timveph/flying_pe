@@ -51,7 +51,7 @@ def app():
             st.write(f"Flight is scheduled to take off at {departing_time_utc}")
         elif arriving_time_utc + timedelta(hours=5) <= utc_datetime:
             st.write(f"Flight has landed around {arriving_time_utc}")
-            st.write("no more tracking information.")
+            st.write("No tracking information.")
         else:
             flight_no_str = df_todays_flights['Flight Number'].to_string(index=False)
             departing_coordinates = df_todays_flights['Departing Coordinates'].item()
@@ -81,7 +81,9 @@ def app():
                     if flight_info['duration'] is not None:
                         duration = '{:02d}H{:02d}m'.format(*divmod(flight_info['duration'], 60))
                     else: duration = 0
-                    if flight_info['eta'] is not None:
+                    if flight_info['status'] == 'landed':
+                        eta = 0
+                    elif flight_info['eta'] is not None:
                         eta = '{:02d}H{:02d}m'.format(*divmod(flight_info['eta'], 60))
                     else: eta = duration
 
@@ -106,7 +108,10 @@ def app():
                     if current_coords == (None, None):
                         current_coords = df_todays_flights['Departing Coordinates']
 
-                    distance_left = fn_calc_distance(current_coords, destination_coords)
+                    if flight_info['status'] == 'landed':
+                        distance_left = 0
+                    else: distance_left = fn_calc_distance(current_coords, destination_coords)
+                    
                     st.metric('Distance Remaining', f"{int(distance_left)} km", delta=f"{int(distance_total)} km")
                 
                     altitude = flight_info['alt']
