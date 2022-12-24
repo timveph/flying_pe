@@ -139,7 +139,10 @@ def app():
 
                 fig = fn_create_track_map(list_lat, list_lon)
                 config = {'displayModeBar': False}
-                st.plotly_chart(fig, theme="streamlit", config=config)
+                st.plotly_chart(fig
+                                ,theme="streamlit"
+                                ,config=config
+                                ,use_container_width=True)
 
 
         st.caption(f"Number of queries left: {requests_left['request']['key']['limits_total']}",unsafe_allow_html=True)
