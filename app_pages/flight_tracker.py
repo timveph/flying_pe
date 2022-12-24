@@ -113,7 +113,7 @@ def app():
                     if altitude is not None:
                         altitude = altitude
                     else: altitude = 0
-                    st.metric('Altitude', f"{altitude} km/h")
+                    st.metric('Altitude', f"{altitude} m")
 
                 with col5:
                     st.write()
@@ -139,10 +139,12 @@ def app():
 
                 fig = fn_create_track_map(list_lat, list_lon)
                 config = {'displayModeBar': False}
+
                 st.plotly_chart(fig
                                 ,theme="streamlit"
                                 ,config=config
                                 ,use_container_width=True)
+                st.caption(flight_iata)
 
 
         st.caption(f"Number of queries left: {requests_left['request']['key']['limits_total']}",unsafe_allow_html=True)
