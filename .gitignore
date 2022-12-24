@@ -7,3 +7,6 @@ scripts/__pycache__
 charts/__pycache__
 charts
 app_pages/__pycache__
+play_flight_path.py
+scratch pad.py
+streamlit_features
