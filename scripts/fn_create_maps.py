@@ -2,8 +2,10 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import random
+import streamlit as st
 
 ### Create plotly diagram ###
+@st.cache(ttl=86400)
 def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, hover_data=[], scope='world', projection = "natural earth"):
 
     fig = px.choropleth(df
@@ -59,7 +61,7 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, hov
 
     return fig
 
-
+@st.experimental_memo(ttl=86400)
 def fn_create_track_map(list_lat, list_lon):
     random_color = random.choice(['wheat', 'snow', 'white', 'ivory'])
     fig = go.Figure(data=go.Scattergeo(
