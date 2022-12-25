@@ -68,7 +68,7 @@ def app():
 
     ## join on to these dataframes, the alpha 2 country code and the continent code #
     # Merge vists and nights_away
-    def fn_merge_data(left_tbl, right_tbl, merge_how, merge_on=[]):
+    def fn_merge_data(left_tbl, right_tbl, merge_how, merge_on=None):
         df_merged = pd.merge(
                 left_tbl,
                 right_tbl,
