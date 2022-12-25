@@ -12,13 +12,41 @@ from scripts.fn_calc_distance import fn_calc_distance
 from scripts.fn_create_maps import fn_create_track_map
 from scripts.fn_data_prep import fn_data_attributes
 
+def fn_create_dashboard(df):
+    st.markdown("#### Next flight ", unsafe_allow_html=True)
+    st.markdown("***")
+    col1, col2, col3 = st.columns([3,1,3])
+    with col1:
+        st.markdown(f"**Departing**")
+        st.markdown(f"##### {df['Airport Name']} ####")
+        st.markdown(f"**{df['Destination Start Time']}**") 
+
+    with col3:
+        st.markdown(f"**Arriving**")
+        st.markdown(f"##### {df['Arrival Airport']} ####")
+        st.markdown(f"""**{df['Destination End Time']}**
+                    """) 
+
+    # chart - for scheduled flight
+    (dep_lat, dep_lon) = df['Departing Coordinates'] # unpack tuple 'departing_coordinates' into seperate variables
+    (arr_lat, arr_lon) = df['Arriving Coordinates']
+    list_lat = [dep_lat, arr_lat] # create input for graph
+    list_lon = [dep_lon, arr_lon] # create input for graph
+    fig = fn_create_track_map(list_lat, list_lon)
+    config = {'displayModeBar': False}
+
+    st.plotly_chart(fig
+                    ,theme="streamlit"
+                    ,config=config
+                    ,use_container_width=True)
+
 def app():
     ### variables ###
     date_format = "%d/%m/%Y %H:%M:%S"
     timezone = 'Europe/London'
     utc_timezone = ZoneInfo("UTC")
     current_datetime_uk = datetime.now(ZoneInfo(timezone))
-    utc_datetime = datetime.now(utc_timezone)
+    utc_datetime = datetime.utcnow()
     date_uk = current_datetime_uk.date()
     time_uk = current_datetime_uk.time()
 
@@ -31,13 +59,18 @@ def app():
     # Get today's flight info
     df_todays_flights = df[(df['Event Start Date'] == current_datetime_uk.date()) 
                             | (df['Event End Date'] == current_datetime_uk.date())
-                            ] # could be more than 1        
+                            ] # could be more than 1
+    # Get future flights
+    df_future_flights = df[(df['Destination Start Time'] > utc_datetime)].iloc[0]
 
     # Check if Paulina is flying today
     if int(requests_left['request']['key']['limits_total']) <= 3:
         st.write("Unfortunately, we cannot track any flights")
+
+    # If there is no flights today, get next flight from spreadsheet
     elif df_todays_flights.empty:
-        st.write("Pe is grounded! Check back tomorrow to see if she has her wings back!")
+        fn_create_dashboard(df_future_flights)
+
     else: 
         departing_time = df_todays_flights['Event Start'].item()
         departing_time = datetime.strptime(departing_time, date_format)
@@ -46,12 +79,18 @@ def app():
         arriving_time = datetime.strptime(arriving_time, date_format)
         arriving_time_utc = arriving_time.astimezone(utc_timezone)
 
-        if departing_time_utc - timedelta(hours=5) >= utc_datetime:
+        # Scheduled 
+        if departing_time_utc - timedelta(hours=2) >= utc_datetime:
             st.write("Please come back just before the flight for tracking information.")
             st.write(f"Flight is scheduled to take off at {departing_time_utc}")
-        elif arriving_time_utc + timedelta(hours=5) <= utc_datetime:
+            fn_create_dashboard(df_todays_flights)
+        
+        # Arrived
+        elif arriving_time_utc + timedelta(hours=2) <= utc_datetime:
             st.write(f"Flight has landed around {arriving_time_utc}")
             st.write("No tracking information.")
+        
+        # En-route
         else:
             flight_no_str = df_todays_flights['Flight Number'].to_string(index=False)
             departing_coordinates = df_todays_flights['Departing Coordinates'].item()
@@ -111,7 +150,7 @@ def app():
                     if flight_info['status'] == 'landed':
                         distance_left = 0
                     else: distance_left = fn_calc_distance(current_coords, destination_coords)
-                    
+
                     st.metric('Distance Remaining', f"{int(distance_left)} km", delta=f"{int(distance_total)} km")
                 
                     altitude = flight_info['alt']
@@ -154,6 +193,6 @@ def app():
 
         st.caption(f"Number of queries left: {requests_left['request']['key']['limits_total']}",unsafe_allow_html=True)
 
-    
-# 2. Instead of showing text if flight info doesn't exist, show the next flight
+
+# 2. What info to show after the flight has landed?
 # 3. Probably need some additional error handling
