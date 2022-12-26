@@ -174,7 +174,7 @@ def app():
     with col_nights_away:
         st.metric('Nights Away'
             , sum_nights_away if radio_continent=='🌎' else sum_nights_away_filtered
-            , delta=sum_nights_away)
+            , delta=int(sum_nights_away))
 
     ########################################################################
 
