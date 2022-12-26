@@ -34,7 +34,7 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, dat
     # Update legend/color bar
     fig.update_layout(coloraxis_colorbar=dict(
             title="Nights away", title_side='top',
-            thicknessmode="pixels", thickness=10,
+            thicknessmode="pixels", thickness=5,
             lenmode="pixels", len=200,
             xanchor="left", x=-0.05,
             yanchor="bottom", y=-0.05,
