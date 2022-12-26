@@ -26,8 +26,8 @@ def fn_data_attributes():
 
     dtype_dict = {'Key': 'float32', 'Event Title': 'string', 'Event Description': 'string'
     , 'Event Location': 'string', 'Airport Code (IATA)':'string', 'Event Start':'datetime64[ns]'
-    ,'Event Start Date': 'datetime64[ns]', 'Event Start Time':'string', 'Event End':'datetime64[ns]'
-    ,'Event End Date':'datetime64[ns]','Event End Time':'string','Timezone':'float16'
+    ,'Event Start Date': 'object', 'Event Start Time':'string', 'Event End':'datetime64[ns]'
+    ,'Event End Date':'object','Event End Time':'string','Timezone':'float16'
     ,'Destination Start Time':'datetime64[ns]', 'Destination End Time':'datetime64[ns]','Nights away':'int8'
     ,'Date Created':'datetime64[ns]', 'Last Updated':'datetime64[ns]', 'Airport Name':'string', 'City':'string'
     ,'Country':'string','Latitude':'string', 'Longitude':'string', 'Flight Number':'string'
