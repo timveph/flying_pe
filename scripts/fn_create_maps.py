@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import random
 import streamlit as st
 
+
 ### Create plotly diagram ###
 @st.cache(max_entries = 5, ttl = 86400)
 def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, data_on_hover=[], scope='world', projection = "natural earth"):
@@ -12,7 +13,12 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, dat
                         , locations=location_col                        
                         # ,color_continuous_scale=px.colors.sequential.Plasma
                         # ,color_continuous_scale=px.colors.sequential.swatches_continuous()
-                        , color_continuous_scale="Viridis"
+                        , color_continuous_scale=random.choice(['Blues', 'Earth', 'Greens', 'Reds'])  
+                        # options: Blackbody,Bluered,Blues,Cividis,Earth,Electric,Greens,Greys,Hot,Jet,Picnic,Portland,Rainbow,RdBu,Reds,Viridis,YlGnBu,YlOrRd.
+                        # , color_continuous_scale = ["rgb(166,206,227)", "rgb(31,120,180)", "rgb(178,223,138)"
+                        #                         ,"rgb(51,160,44)", "rgb(251,154,153)", "rgb(227,26,28)"]
+                        # , color_continuous_midpoint=10
+                        # , reversescale=True
                         # ,color_discrete_sequence = px.colors.cyclical.swatches
                         # , range_color=(0,max_nights_away)
                         ,hover_name = hover_name
@@ -24,6 +30,18 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, dat
                         # ,title=scope
                         ,projection=projection
                         )
+    
+    # Update legend/color bar
+    fig.update_layout(coloraxis_colorbar=dict(
+            title="Nights away", title_side='top',
+            thicknessmode="pixels", thickness=25,
+            lenmode="pixels", len=200,
+            xanchor="left", x=0,
+            yanchor="bottom", y=-0.05,
+            orientation='h'
+            ,ticks="inside", ticksuffix="",
+            dtick=5
+        ))
 
     # Reference: https://plotly.com/python/map-configuration/   - changing the look and feel of the map
     # fig.update_geos(projection_type="orthographic")
