@@ -13,6 +13,8 @@ from scripts.fn_create_maps import fn_create_track_map
 from scripts.fn_data_prep import fn_data_attributes
 
 def fn_create_dashboard(df, remaining_requests):
+    # st.write(df) # debug
+    # st.write(df.dtypes) # debug
     st.markdown("#### Next flight ", unsafe_allow_html=True)
     st.markdown("***")
     col1, col2, col3 = st.columns([3,1,3])
@@ -21,7 +23,8 @@ def fn_create_dashboard(df, remaining_requests):
         st.markdown(f"##### {df['City']} ({df['Airport Code (IATA)']}) ####")
         st.markdown(f"**{df['Destination Start Time']}** ({df['alpha-3']})") 
         st.markdown(f"""
-                    **{df['Event Start'].replace(tzinfo=timezone.utc).astimezone(tz=None)}** (local)
+                    **{df['Event Start'].replace(tzinfo=timezone.utc).astimezone(tz=None)
+                            }** (local)
                     """) 
 
     with col3:
@@ -29,7 +32,8 @@ def fn_create_dashboard(df, remaining_requests):
         st.markdown(f"##### {df['Arrival Airport']} ####")
         st.markdown(f"""**{df['Destination End Time']}** ({df['alpha-3']})""")
         st.markdown(f"""
-                    **{df['Event End'].replace(tzinfo=timezone.utc).astimezone(tz=None)}** (local)
+                    **{df['Event End'].replace(tzinfo=timezone.utc).astimezone(tz=None)
+                    }** (local)
                     """)  
 
     # chart - for scheduled flight
@@ -68,8 +72,12 @@ def app():
     df_todays_flights = df[(df['Event Start Date'] == utc_datetime.date()) 
                             | (df['Event End Date'] == utc_datetime.date())
                             ] # could be more than 1
+
     # Get future flights
     df_future_flights = df[(df['Destination End Time'] > utc_datetime)].iloc[0]
+    
+    
+    # df_todays_flights = pd.DataFrame() # debug/test
 
     # Check if Paulina is flying today
     if int(requests_left['request']['key']['limits_total']) <= 3:
@@ -88,13 +96,19 @@ def app():
         # arriving_time_utc = arriving_time.astimezone(utc_timezone)
 
         # Scheduled 
-        if departing_time_utc - timedelta(hours=2) >= utc_datetime:
-            st.write("Please come back just before the flight for tracking information.")
-            st.write(f"Flight is scheduled to take off at {departing_time_utc}")
+        if departing_time_utc - timedelta(hours=1) >= utc_datetime:
+            st.markdown("**Live tracking** info from <u>1 hour</u> before the flight.",unsafe_allow_html=True)
+            
+            # how to account for more than 1 flight per day
+            # for now, just get one flight
+            df_todays_flights = df_todays_flights.iloc[0] # change to <class 'pandas.core.series.Series'>
+            # That is how the function fn_create_dashboard receives data. If you want to send it a dataframe,
+            # we must adjust the function to pull out the .item() of all columns
+
             fn_create_dashboard(df_todays_flights, requests_left)
         
         # Arrived
-        elif arriving_time_utc + timedelta(hours=2) <= utc_datetime:
+        elif arriving_time_utc + timedelta(hours=1) <= utc_datetime:
             st.write(f"Flight has landed around {arriving_time_utc}")
             st.write("No tracking information.")
             fn_create_dashboard(df_future_flights, requests_left)
@@ -200,7 +214,7 @@ def app():
                 st.caption(flight_iata)
 
 
-        st.markdown(f"<sub>Number of queries left: {remaining_requests['request']['key']['limits_total']}</sub>",unsafe_allow_html=True)
+            st.markdown(f"<sub>Number of queries left: {requests_left['request']['key']['limits_total']}</sub>",unsafe_allow_html=True)
 
 
 # 2. What info to show after the flight has landed?
