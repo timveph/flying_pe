@@ -24,6 +24,20 @@ def fn_data_attributes():
     df = clean_country(df, "Official_Country_Name", input_format="official", output_format="alpha-3", inplace=False)
     df.rename(columns={'Official_Country_Name_clean': 'alpha-3'}, inplace=True)
 
+    dtype_dict = {'Key': 'float32', 'Event Title': 'string', 'Event Description': 'string'
+    , 'Event Location': 'string', 'Airport Code (IATA)':'string', 'Event Start':'datetime64[ns]'
+    ,'Event Start Date': 'datetime64[ns]', 'Event Start Time':'string', 'Event End':'datetime64[ns]'
+    ,'Event End Date':'datetime64[ns]','Event End Time':'string','Timezone':'float16'
+    ,'Destination Start Time':'datetime64[ns]', 'Destination End Time':'datetime64[ns]','Nights away':'int8'
+    ,'Date Created':'datetime64[ns]', 'Last Updated':'datetime64[ns]', 'Airport Name':'string', 'City':'string'
+    ,'Country':'string','Latitude':'string', 'Longitude':'string', 'Flight Number':'string'
+    , 'Arriving at':'string', 'Arrival Airport':'string', 'Arrival Latitude':'string'
+    , 'Arrival Longitude':'string', 'Departing Coordinates':'object', 'Arriving Coordinates':'object'
+    , 'Distance travelled (km)':'float64', 'Time Spent Travelling (s)':'float64'
+    , 'Official_Country_Name':'string', 'alpha-3':'string'
+    }
+    df = df.astype(dtype_dict)
+
     return df
 
 ### Read in country codes ###
