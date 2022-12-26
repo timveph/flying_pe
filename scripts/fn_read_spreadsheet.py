@@ -6,7 +6,7 @@ from scripts.fn_connect_to_spreadsheet import fn_connect_to_spreadsheet
 date_format_in_spreadsheet = "%d/%m/%Y %H:%M:%S"
 
 ### READ SPREADSHEET ###
-@st.experimental_memo(ttl=600)
+@st.experimental_memo(ttl=86400)
 def fn_read_spreadsheet():
     # Connect to spreadsheet
     sh = fn_connect_to_spreadsheet()
