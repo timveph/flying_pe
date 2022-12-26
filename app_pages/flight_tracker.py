@@ -1,6 +1,6 @@
 import re
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 import time
 import pandas as pd
@@ -12,20 +12,25 @@ from scripts.fn_calc_distance import fn_calc_distance
 from scripts.fn_create_maps import fn_create_track_map
 from scripts.fn_data_prep import fn_data_attributes
 
-def fn_create_dashboard(df):
+def fn_create_dashboard(df, remaining_requests):
     st.markdown("#### Next flight ", unsafe_allow_html=True)
     st.markdown("***")
     col1, col2, col3 = st.columns([3,1,3])
     with col1:
         st.markdown(f"**Departing**")
-        st.markdown(f"##### {df['Airport Name']} ####")
-        st.markdown(f"**{df['Destination Start Time']}**") 
+        st.markdown(f"##### {df['City']} ({df['Airport Code (IATA)']}) ####")
+        st.markdown(f"**{df['Destination Start Time']}** ({df['alpha-3']})") 
+        st.markdown(f"""
+                    **{df['Event Start'].replace(tzinfo=timezone.utc).astimezone(tz=None)}** (local)
+                    """) 
 
     with col3:
         st.markdown(f"**Arriving**")
         st.markdown(f"##### {df['Arrival Airport']} ####")
-        st.markdown(f"""**{df['Destination End Time']}**
-                    """) 
+        st.markdown(f"""**{df['Destination End Time']}** ({df['alpha-3']})""")
+        st.markdown(f"""
+                    **{df['Event End'].replace(tzinfo=timezone.utc).astimezone(tz=None)}** (local)
+                    """)  
 
     # chart - for scheduled flight
     (dep_lat, dep_lon) = df['Departing Coordinates'] # unpack tuple 'departing_coordinates' into seperate variables
@@ -39,6 +44,9 @@ def fn_create_dashboard(df):
                     ,theme="streamlit"
                     ,config=config
                     ,use_container_width=True)
+    
+    st.markdown(f"<sub>Number of queries left: {remaining_requests['request']['key']['limits_total']}</sub>",unsafe_allow_html=True)
+
 
 def app():
     ### variables ###
@@ -57,11 +65,11 @@ def app():
     # Get data from spreadsheet + attributes
     df = fn_data_attributes()
     # Get today's flight info
-    df_todays_flights = df[(df['Event Start Date'] == current_datetime_uk.date()) 
-                            | (df['Event End Date'] == current_datetime_uk.date())
+    df_todays_flights = df[(df['Event Start Date'] == utc_datetime.date()) 
+                            | (df['Event End Date'] == utc_datetime.date())
                             ] # could be more than 1
     # Get future flights
-    df_future_flights = df[(df['Destination Start Time'] > utc_datetime)].iloc[0]
+    df_future_flights = df[(df['Destination End Time'] > utc_datetime)].iloc[0]
 
     # Check if Paulina is flying today
     if int(requests_left['request']['key']['limits_total']) <= 3:
@@ -69,26 +77,27 @@ def app():
 
     # If there is no flights today, get next flight from spreadsheet
     elif df_todays_flights.empty:
-        fn_create_dashboard(df_future_flights)
+        fn_create_dashboard(df_future_flights, requests_left)
 
     else: 
-        departing_time = df_todays_flights['Event Start'].item()
-        departing_time = datetime.strptime(departing_time, date_format)
-        departing_time_utc = departing_time.astimezone(utc_timezone)
-        arriving_time = df_todays_flights['Event End'].item()
-        arriving_time = datetime.strptime(arriving_time, date_format)
-        arriving_time_utc = arriving_time.astimezone(utc_timezone)
+        departing_time_utc = df_todays_flights['Event Start'].item()
+        # departing_time = datetime.strptime(departing_time, date_format)
+        # departing_time_utc = departing_time.astimezone(utc_timezone)
+        arriving_time_utc = df_todays_flights['Event End'].item()
+        # arriving_time = datetime.strptime(arriving_time, date_format)
+        # arriving_time_utc = arriving_time.astimezone(utc_timezone)
 
         # Scheduled 
         if departing_time_utc - timedelta(hours=2) >= utc_datetime:
             st.write("Please come back just before the flight for tracking information.")
             st.write(f"Flight is scheduled to take off at {departing_time_utc}")
-            fn_create_dashboard(df_todays_flights)
+            fn_create_dashboard(df_todays_flights, requests_left)
         
         # Arrived
         elif arriving_time_utc + timedelta(hours=2) <= utc_datetime:
             st.write(f"Flight has landed around {arriving_time_utc}")
             st.write("No tracking information.")
+            fn_create_dashboard(df_future_flights, requests_left)
         
         # En-route
         else:
@@ -191,7 +200,7 @@ def app():
                 st.caption(flight_iata)
 
 
-        st.caption(f"Number of queries left: {requests_left['request']['key']['limits_total']}",unsafe_allow_html=True)
+        st.markdown(f"<sub>Number of queries left: {remaining_requests['request']['key']['limits_total']}</sub>",unsafe_allow_html=True)
 
 
 # 2. What info to show after the flight has landed?
