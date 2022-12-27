@@ -109,7 +109,7 @@ def app():
         
         # Arrived
         elif arriving_time_utc + timedelta(hours=1) <= utc_datetime:
-            st.write(f"Flight has landed around {arriving_time_utc}")
+            st.write(f"Flight {flight_iata} has landed around {arriving_time_utc}")
             st.write("No tracking information.")
             fn_create_dashboard(df_future_flights, requests_left)
         
@@ -120,9 +120,11 @@ def app():
             flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
             api_data = airlabs.fn_query_airlabs_api('flight', flight_iata)
             a = json.loads(api_data)
-
-            if a['response']['status'] == 'landed':
-                st.write(f"Flight {flight_iata} has landed around {arriving_time_utc}")
+            
+            #check for error message - meaning flight is not found i.e. it has landed and no more flight tracking info
+            # should this error check be placed in function? 
+            if 'error' in a:
+                st.write(f"Flight {flight_iata} has landed at approximately {arriving_time_utc}")
                 fn_create_dashboard(df_future_flights, requests_left)
             else:
                 flight_info = airlabs.fn_flight_tracking_info(a['response'], flight_iata)
