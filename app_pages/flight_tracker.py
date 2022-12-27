@@ -107,8 +107,8 @@ def app():
 
             fn_create_dashboard(df_todays_flights, requests_left)
         
-        # Arrived
-        elif arriving_time_utc + timedelta(hours=1) <= utc_datetime:
+        # Arrived/ Landed
+        elif arriving_time_utc <= utc_datetime: # no flight info a few minutes after flight has landed
             st.write(f"Flight {flight_iata} has landed around {arriving_time_utc}")
             st.write("No tracking information.")
             fn_create_dashboard(df_future_flights, requests_left)
