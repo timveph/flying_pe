@@ -109,8 +109,7 @@ def app():
         
         # Arrived/ Landed
         elif arriving_time_utc <= utc_datetime: # no flight info a few minutes after flight has landed
-            st.write(f"Flight {flight_iata} has landed around {arriving_time_utc}")
-            st.write("No tracking information.")
+            st.write(f"Today's flight has landed at approximately {arriving_time_utc}")
             fn_create_dashboard(df_future_flights, requests_left)
         
         # En-route
