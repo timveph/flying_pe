@@ -5,7 +5,7 @@ translator_dict = {
                 "Flight Tracker":{"pl":"Śledzenie lotów"}
                 ,"Stats":{"pl":"Statystyki"}
                 #flight_tracker.py
-                ,'Next Flight': {'pl': 'Następny lot'}
+                ,"Next flight": {"pl": "Następny lot"}
                 ,"local":{"pl":"lokalny"}
                 ,"Number of queries left":{"pl":"Pozostały liczba zapytań"}
                 ,"Unfortunately, we cannot track any flights":{"pl":"Niestety nie możemy śledzić żadnych lotów"}
@@ -18,7 +18,7 @@ translator_dict = {
                 ,"Speed":{"pl":"Prędkość"}
                 ,"Distance Remaining":{"pl":"Pozostała odległość"}
                 ,"Altitude":{"pl":"Wysokość"}
-                ,"**Landing at**":{"pl":"**lądowanie w**"}
+                ,"**Landing at**":{"pl":"**Lądowanie w**"}
                 ,"<sub>Number of queries left: ":{"pl":"<sub> Liczba pozostałych zapytań: "}
                 # home.py
                 ,"Flights":{"pl":"Loty"}
