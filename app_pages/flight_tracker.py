@@ -9,6 +9,7 @@ import streamlit as st
 # from scripts.fn_query_airlabs_api import fn_query_airlabs_api
 import scripts.fn_query_airlabs_api as airlabs
 from scripts.fn_calc_distance import fn_calc_distance
+from scripts.fn_calc_midpoint import fn_calc_midpont
 from scripts.fn_create_maps import fn_create_track_map
 from scripts.fn_data_prep import fn_data_attributes
 from scripts.fn_translate import fn_translate
@@ -16,11 +17,11 @@ from scripts.fn_translate import fn_translate
 def fn_create_dashboard(df, remaining_requests, language):
     # st.write(df) # debug
     # st.write(df.dtypes) # debug
-    st.markdown(f"#### {fn_translate(language, 'Next flight')} ", unsafe_allow_html=True)
+    st.markdown(f"#### {fn_translate(language, 'Next flight')}", unsafe_allow_html=True)
     st.markdown("***")
     col1, col2, col3 = st.columns([3,1,3])
     with col1:
-        st.markdown(f"**{fn_translate(language, 'Departing')}**")
+        st.markdown(f"{fn_translate(language, '**Departing**')}")
         st.markdown(f"##### {df['City']} ({df['Airport Code (IATA)']}) ####")
         st.markdown(f"**{df['Destination Start Time']}** ({df['alpha-3']})") 
         st.markdown(f"""
@@ -29,7 +30,7 @@ def fn_create_dashboard(df, remaining_requests, language):
                     """) 
 
     with col3:
-        st.markdown(f"**{fn_translate(language, 'Arriving')}**")
+        st.markdown(f"{fn_translate(language, '**Landing at**')}")
         st.markdown(f"##### {df['Arrival Airport']} ####")
         st.markdown(f"""**{df['Destination End Time']}** ({df['alpha-3']})""")
         st.markdown(f"""
@@ -42,7 +43,8 @@ def fn_create_dashboard(df, remaining_requests, language):
     (arr_lat, arr_lon) = df['Arriving Coordinates']
     list_lat = [dep_lat, arr_lat] # create input for graph
     list_lon = [dep_lon, arr_lon] # create input for graph
-    fig = fn_create_track_map(list_lat, list_lon)
+    midpoint = fn_calc_midpont(df['Arriving Coordinates'], df['Departing Coordinates'])
+    fig = fn_create_track_map(list_lat, list_lon, midpoint)
     config = {'displayModeBar': False}
 
     st.plotly_chart(fig
@@ -123,6 +125,7 @@ def app():
             flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
             api_data = airlabs.fn_query_airlabs_api('flight', flight_iata)
             a = json.loads(api_data)
+            # st.write(a)
             
             #check for error message - meaning flight is not found i.e. it has landed and no more flight tracking info
             # should this error check be placed in function? 
@@ -214,7 +217,8 @@ def app():
                     list_lat = [dep_lat, curr_lat] # create input for graph
                     list_lon = [dep_lon, curr_lon] # create input for graph
 
-                    fig = fn_create_track_map(list_lat, list_lon)
+                    midpoint = fn_calc_midpont(df['Arriving Coordinates'], df['Departing Coordinates'])
+                    fig = fn_create_track_map(list_lat, list_lon, midpoint)
                     config = {'displayModeBar': False}
 
                     st.plotly_chart(fig

@@ -8,6 +8,7 @@ streamlit
 dataprep
 plotly.express
 geopy==2.3.0
+great-circle-calculator==1.3.0
 millify
 requests
 asyncio

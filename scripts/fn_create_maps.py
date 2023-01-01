@@ -80,7 +80,9 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, legend_title,
     return fig
 
 @st.experimental_memo(max_entries = 5, ttl=900)
-def fn_create_track_map(list_lat, list_lon):
+def fn_create_track_map(list_lat, list_lon, midpoint):
+    (m_lat, m_lon) = midpoint
+
     random_color = random.choice(['wheat', 'snow', 'white', 'ivory'])
     fig = go.Figure(data=go.Scattergeo(
         lat = list_lat, # lat [from, to]
@@ -103,8 +105,8 @@ def fn_create_track_map(list_lat, list_lon):
         showlegend = False,
         autosize = False,
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        
         geo = dict(
-            fitbounds = "locations", # geojson
             resolution = 110, # this takes longer to render - slows page load
             bgcolor='rgba(0,0,0,0)',
             # showland = True,
@@ -116,16 +118,18 @@ def fn_create_track_map(list_lat, list_lon):
             projection_type = "equirectangular",
             # projection_type = "natural earth",
             # projection_type = "orthographic",
-            # projection_scale = 2,
             scope="world",
             # coastlinewidth = 2,
+            # fitbounds = "geojson", # locations
+            projection_scale = 2.5, # zoom into the map - goes hand in hand with center
+            center=dict(lat=m_lat, lon=m_lon) # center the map based on midpoint between start and end coordinates
             # lataxis = dict(
-            #     range = [10, 80],
+            #     range = [0, 200],
             #     # showgrid = True,
             #     # dtick = 10
             # ),
             # lonaxis = dict(
-            #     range = [-0.3, -90],
+            #     range = [0, 200],
             #     # showgrid = True,
             #     # dtick = 20
             #     ),
