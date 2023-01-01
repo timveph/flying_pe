@@ -3,11 +3,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import random
 import streamlit as st
-
+from scripts.fn_translate import fn_translate
 
 ### Create plotly diagram ###
 @st.cache(max_entries = 5, ttl = 86400)
-def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, data_on_hover=[], scope='world', projection = "natural earth"):
+def fn_create_scratch_map(df, location_col, hover_name, color_map, legend_title, label={}, data_on_hover=[], scope='world', projection = "natural earth"):
 
     fig = px.choropleth(df
                         , locations=location_col                        
@@ -33,7 +33,7 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, label={}, dat
     
     # Update legend/color bar
     fig.update_layout(coloraxis_colorbar=dict(
-            title="Nights away", title_side='top',
+            title=legend_title, title_side='top',
             thicknessmode="pixels", thickness=5,
             lenmode="pixels", len=200,
             xanchor="left", x=-0.05,
