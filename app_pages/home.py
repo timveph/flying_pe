@@ -3,12 +3,14 @@ import pandas as pd
 import plotly.express as px
 from millify import millify
 from scripts.fn_create_maps import fn_create_scratch_map
+from scripts.fn_translate import fn_translate
 import scripts.fn_data_prep as data_prep
 import datetime
 
 
 def app():
-    # Global Variables
+    # Global Variables]
+    language = st.session_state.language # set from the main page where the radio button is defined
     datetime_now = datetime.datetime.now()
     datetime_in_utc = datetime.datetime.utcnow()
     date_format_in_spreadsheet = "%d/%m/%Y %H:%M:%S"
@@ -151,28 +153,28 @@ def app():
 
     ################## Metrics #############################################
     with col_flights:
-        st.metric('Flights'
+        st.metric(fn_translate(language,'Flights')
             , cnt_flights if radio_continent=='🌎' else cnt_flights_filtered
             , delta=cnt_flights)
     with col_distance:
-        st.metric('Distance (km)'
+        st.metric(fn_translate(language, 'Distance (km)')
             , millify(sum_distance_travelled, precision=2) if radio_continent=='🌎' else millify(sum_distance_travelled_filtered, precision=2)
             , delta=millify(sum_distance_travelled, precision=2))
     with col_time:
-        st.metric('Time on :airplane: (days)'
+        st.metric(fn_translate(language, 'Time on :airplane: (days)')
             , millify(sum_time_spent_travelling, precision=1) if radio_continent=='🌎' else millify(sum_time_spent_travelling_filtered, precision=1)
             , delta=millify(sum_time_spent_travelling, precision=1))
 
     with col_countries:
-        st.metric('Countries Visited'
+        st.metric(fn_translate(language, 'Countries Visited')
             , cnt_countries if radio_continent=='🌎' else cnt_countries_filtered
             , delta=cnt_countries)
     with col_cities:
-        st.metric('Cities Visited'
+        st.metric(fn_translate(language, 'Cities Visited')
             , cnt_cities if radio_continent=='🌎' else cnt_cities_filtered
             , delta=cnt_cities)
     with col_nights_away:
-        st.metric('Nights Away'
+        st.metric(fn_translate(language, 'Nights Away')
             , sum_nights_away if radio_continent=='🌎' else sum_nights_away_filtered
             , delta=int(sum_nights_away))
 
@@ -186,58 +188,61 @@ def app():
 
     ################## Scratch Map #########################################
     data_on_hover = ['Capital', 'Sub-region Name', 'Visits', 'Nights away'] # list
-    rename_cols = {'alpha-3':'Country Code'} # dict
+    rename_cols = {'alpha-3':fn_translate(language,'Country Code')
+                    ,'Capital':fn_translate(language,'Capital')
+                    ,'Sub-region Name':fn_translate(language,'Sub-region Name')
+                    ,'Visits':fn_translate(language,'Visits')
+                    ,'Nights away':fn_translate(language,'Nights away')
+    } # dict
     config = {'displayModeBar': False, 'responsive': True}
+    legend_title = fn_translate(language, "Nights away")
 
-    with st.spinner('Loading...'):
+    with st.spinner(fn_translate(language, 'Loading...')):
         if radio_continent == '🌎':
                 st.plotly_chart(
-                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away"
+                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away", legend_title
                                         , rename_cols, data_on_hover, scope='world', projection='orthographic')
                     ,config=config
                     ,use_container_width=True
                 )
         elif radio_continent == 'Africa':
                 st.plotly_chart(
-                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away"
+                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away", legend_title
                                         , rename_cols, data_on_hover, scope='africa')
                     ,config=config
                     ,use_container_width=True
                 )
         elif radio_continent == 'Asia':
                 st.plotly_chart(
-                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away"
+                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away", legend_title
                                         , rename_cols, data_on_hover, scope='asia')
                     ,config=config
                     ,use_container_width=True
                 )
         elif radio_continent == 'Europe':
                 st.plotly_chart(
-                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away"
+                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away", legend_title
                                         , rename_cols, data_on_hover, scope='europe')
                     ,config=config
                     ,use_container_width=True
                 )
         elif radio_continent == 'North America':
                 st.plotly_chart(
-                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away"
+                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away", legend_title
                                         , rename_cols, data_on_hover, scope='north america')
                     ,config=config
                     ,use_container_width=True
                 )
-                st.markdown("""
-                    <sub><u>Note:</u> **Bermuda** and **Barbados** are not represented on 
-                    this map. However, the metrics account for the trips to these countries.</sub>
-                    """, unsafe_allow_html=True)          
+                st.markdown(fn_translate(language, "<sub><u>Note:</u> **Bermuda** and **Barbados** are not represented on map. However, the metrics account for the trips to these countries.</sub>"), unsafe_allow_html=True)          
         elif radio_continent == 'South America':
                 st.plotly_chart(
-                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away"
+                    fn_create_scratch_map(df_map_data_stats, "alpha-3", "Country", "Nights away", legend_title
                                         , rename_cols, data_on_hover, scope='south america')
                     ,config=config
                     ,use_container_width=True
                 )             
         elif radio_continent == 'Oceania':
-                st.error('There is no map info in plotly choropleth... Sorry.... but nothing I can do for now.')
+                st.error(fn_translate(language, 'There is no map info in plotly choropleth... Sorry.... but nothing I can do for now.'))
         else: st.write()
 
     ########################################################################
