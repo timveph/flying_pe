@@ -24,19 +24,24 @@ def fn_create_dashboard(df, remaining_requests, language):
         st.markdown(f"{fn_translate(language, '**Departing**')}")
         st.markdown(f"##### {df['City']} ({df['Airport Code (IATA)']}) ####")
         st.markdown(f"**{df['Destination Start Time']}** ({df['alpha-3']})") 
-        st.markdown(f"""
-                    **{df['Event Start'].replace(tzinfo=timezone.utc).astimezone(tz=None)
-                            }** ({fn_translate(language, 'local')})
-                    """) 
+        # THERE IS A BUG IN THE WAY TIME IS PRESENTED
+        # Column EVENT START, EVENT END have not formatted correctly
+        # st.markdown(f"""
+        #             **{df['Event Start'].replace(tzinfo=timezone.utc).astimezone(tz=None)
+        #                     }** ({fn_translate(language, 'local')})
+        #             """) 
 
     with col3:
         st.markdown(f"{fn_translate(language, '**Landing at**')}")
         st.markdown(f"##### {df['Arrival Airport']} ####")
         st.markdown(f"""**{df['Destination End Time']}** ({df['alpha-3']})""")
-        st.markdown(f"""
-                    **{df['Event End'].replace(tzinfo=timezone.utc).astimezone(tz=None)
-                    }** ({fn_translate(language, 'local')})
-                    """)  
+        # THERE IS A BUG IN THE WAY TIME IS PRESENTED
+        # Column EVENT START, EVENT END have not formatted correctly
+        # st.markdown(f"""
+        #             **{df['Event End']
+        #             .replace(tzinfo=timezone.utc).astimezone(tz=None)
+        #             }** ({fn_translate(language, 'local')})
+        #             """)  
 
     # chart - for scheduled flight
     (dep_lat, dep_lon) = df['Departing Coordinates'] # unpack tuple 'departing_coordinates' into seperate variables
