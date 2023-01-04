@@ -9,7 +9,7 @@ import streamlit as st
 # from scripts.fn_query_airlabs_api import fn_query_airlabs_api
 import scripts.fn_query_airlabs_api as airlabs
 from scripts.fn_calc_distance import fn_calc_distance
-from scripts.fn_calc_midpoint import fn_calc_midpont
+from scripts.fn_calc_midpoint import fn_calc_midpoint
 from scripts.fn_create_maps import fn_create_track_map
 from scripts.fn_data_prep import fn_data_attributes
 from scripts.fn_translate import fn_translate
@@ -48,7 +48,7 @@ def fn_create_dashboard(df, remaining_requests, language):
     (arr_lat, arr_lon) = df['Arriving Coordinates']
     list_lat = [dep_lat, arr_lat] # create input for graph
     list_lon = [dep_lon, arr_lon] # create input for graph
-    midpoint = fn_calc_midpont(df['Arriving Coordinates'], df['Departing Coordinates'])
+    midpoint = fn_calc_midpoint(df['Arriving Coordinates'], df['Departing Coordinates'])
     fig = fn_create_track_map(list_lat, list_lon, midpoint)
     config = {'displayModeBar': False}
 
@@ -223,7 +223,6 @@ def app():
                     st.progress(flight_info['percent'] or 0)
                     # st.write(f"{flight_info['lat']},{flight_info['lng']}")
 
-
                 with con_map:
                     (dep_lat, dep_lon) = departing_coordinates # unpack tuple 'departing_coordinates' into seperate variables
                     curr_lat = flight_info['lat']
@@ -231,7 +230,9 @@ def app():
                     list_lat = [dep_lat, curr_lat] # create input for graph
                     list_lon = [dep_lon, curr_lon] # create input for graph
 
-                    midpoint = fn_calc_midpont(df['Arriving Coordinates'], df['Departing Coordinates'])
+                    start_point = df_todays_flights['Departing Coordinates'].item()
+                    end_point = df_todays_flights['Arriving Coordinates'].item()
+                    midpoint = fn_calc_midpoint((start_point), (end_point))
                     fig = fn_create_track_map(list_lat, list_lon, midpoint)
                     config = {'displayModeBar': False}
 
