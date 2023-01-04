@@ -84,6 +84,7 @@ def app():
                             | (df['Event End Date'] == utc_datetime.date())
                             ] # could be more than 1
 
+    # st.write(df_todays_flights) # debug
     # Get future flights
     df_future_flights = df[(df['Destination End Time'] > utc_datetime)].iloc[0]
     
@@ -99,10 +100,18 @@ def app():
         fn_create_dashboard(df_future_flights, requests_left, language)
 
     else: 
-        departing_time_utc = df_todays_flights['Event Start'].item()
+        # st.write((df_todays_flights['Event Start Date'].item()).strftime("%Y-%m-%d")) # debug
+        # st.write(utc_datetime) # debug
+        departing_time_utc = (df_todays_flights['Event Start Date'].item()).strftime("%Y-%m-%d")
+        departing_time_utc = datetime.strptime(departing_time_utc, "%Y-%m-%d")
+        # st.write(departing_time_utc) # debug
+
+        # departing_time_utc = df_todays_flights['Event Start'].item()
         # departing_time = datetime.strptime(departing_time, date_format)
         # departing_time_utc = departing_time.astimezone(utc_timezone)
-        arriving_time_utc = df_todays_flights['Event End'].item()
+        # arriving_time_utc = df_todays_flights['Event End Date'].item()
+        arriving_time_utc = (df_todays_flights['Event End Date'].item()).strftime("%Y-%m-%d")
+        arriving_time_utc = datetime.strptime(arriving_time_utc, "%Y-%m-%d")
         # arriving_time = datetime.strptime(arriving_time, date_format)
         # arriving_time_utc = arriving_time.astimezone(utc_timezone)
 
