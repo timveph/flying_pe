@@ -84,7 +84,14 @@ def app():
                             | (df['Event End Date'] == utc_datetime.date())
                             ] # could be more than 1
 
+    # If there is more than one flight, get the flight that is current
+    df_todays_flights = df_todays_flights[
+                                (df_todays_flights['Event Start Time'] > utc_datetime.strftime("%H:%M:%S"))
+                                & (df_todays_flights['Event End Time'] < utc_datetime.strftime("%H:%M:%S"))
+                                ]
+    
     # st.write(df_todays_flights) # debug
+  
     # Get future flights
     df_future_flights = df[(df['Destination End Time'] > utc_datetime)].iloc[0]
     
