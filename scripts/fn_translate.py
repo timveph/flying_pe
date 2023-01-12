@@ -10,7 +10,8 @@ translator_dict = {
                 ,"Number of queries left":{"pl":"Pozostały liczba zapytań"}
                 ,"Unfortunately, we cannot track any flights":{"pl":"Niestety nie możemy śledzić żadnych lotów"}
                 ,"**Live tracking** info from <u>1 hour</u> before the flight.":{"pl":"**Śledzenie na żywo** Informacje od <u>1 godzinę</u> przed lotem."}
-                ,"The flight has landed at approximately ":{"pl":"Dzisiejszy lot wylądował w przybliżeniu "}
+                # ,"The flight has landed at approximately ":{"pl":"Dzisiejszy lot wylądował w przybliżeniu "}
+                ,"The flight has landed":{"pl":"Lot wylądował"}
                 ,"Flight {flight_iata} has landed at approximately ":{"pl":"Flight {Flight_iata} wylądował w przybliżeniu "}
                 ,"**Departing**":{"pl":"**Odchodzenie**"}
                 ,"Time remaining":{"pl":"Pozostały czas"}

@@ -84,13 +84,14 @@ def app():
                             | (df['Event End Date'] == utc_datetime.date())
                             ] # could be more than 1
 
+    # st.write("before filter", df_todays_flights) # debug
     # If there is more than one flight, get the flight that is current
     df_todays_flights = df_todays_flights[
-                                (df_todays_flights['Event Start Time'] > utc_datetime.strftime("%H:%M:%S"))
-                                & (df_todays_flights['Event End Time'] < utc_datetime.strftime("%H:%M:%S"))
+                                (df_todays_flights['Event Start Time'] < utc_datetime.strftime("%H:%M:%S"))
+                                & (df_todays_flights['Event End Time'] > utc_datetime.strftime("%H:%M:%S"))
                                 ]
     
-    # st.write(df_todays_flights) # debug
+    # st.write("after filter", df_todays_flights) # debug
   
     # Get future flights
     df_future_flights = df[(df['Destination End Time'] > utc_datetime)].iloc[0]
@@ -135,9 +136,10 @@ def app():
             fn_create_dashboard(df_todays_flights, requests_left, language)
         
         # Arrived/ Landed
-        elif arriving_time_utc <= utc_datetime: # no flight info a few minutes after flight has landed
-            st.write(f'{fn_translate(language, "The flight has landed at approximately ")} {arriving_time_utc}')
-            fn_create_dashboard(df_future_flights, requests_left, language)
+        elif arriving_time_utc >= utc_datetime: # no flight info a few minutes after flight has landed
+            # st.write(f'{fn_translate(language, "The flight has landed at approximately ")} {datetime.date(arriving_time_utc)}')
+            st.write(f'{fn_translate(language, "The flight has landed")}')
+            fn_create_dashboard(df_future_flights, requests_left, language)            
         
         # En-route
         else:
@@ -151,7 +153,8 @@ def app():
             #check for error message - meaning flight is not found i.e. it has landed and no more flight tracking info
             # should this error check be placed in function? 
             if 'error' in a:
-                st.write(f"{fn_translate(language, 'Flight {flight_iata} has landed at approximately ')}{arriving_time_utc}")
+                # st.write(f"{fn_translate(language, 'Flight {flight_iata} has landed at approximately ')}{arriving_time_utc}")
+                st.write(f'{fn_translate(language, "The flight has landed")}')
                 fn_create_dashboard(df_future_flights, requests_left, language)
             else:
                 flight_info = airlabs.fn_flight_tracking_info(a['response'], flight_iata)
