@@ -84,11 +84,16 @@ def app():
                             | (df['Event End Date'] == utc_datetime.date())
                             ] # could be more than 1
 
+    # st.write(df_todays_flights.dtypes) #debug
     # st.write("before filter", df_todays_flights) # debug
+    # st.write(utc_datetime)  # debug
+    # st.write(utc_datetime.strftime("%H:%M:%S"))  # debug
+    # st.write('start time < utc_time \n', df_todays_flights['Event Start'] < utc_datetime)  # debug
+    # st.write('end time > utc_time \n', df_todays_flights['Event End'] > utc_datetime)  # debug
     # If there is more than one flight, get the flight that is current
     df_todays_flights = df_todays_flights[
-                                (df_todays_flights['Event Start Time'] < utc_datetime.strftime("%H:%M:%S"))
-                                & (df_todays_flights['Event End Time'] > utc_datetime.strftime("%H:%M:%S"))
+                                (df_todays_flights['Event Start'] < utc_datetime.strftime("%H:%M:%S"))
+                                & (df_todays_flights['Event End'] > utc_datetime.strftime("%H:%M:%S"))
                                 ]
     
     # st.write("after filter", df_todays_flights) # debug
@@ -105,26 +110,32 @@ def app():
 
     # If there is no flights today, get next flight from spreadsheet
     elif df_todays_flights.empty:
+        # st.write("df_todays_flight is empty")# debug
         fn_create_dashboard(df_future_flights, requests_left, language)
 
     else: 
         # st.write((df_todays_flights['Event Start Date'].item()).strftime("%Y-%m-%d")) # debug
+        departing_time_utc = df_todays_flights['Event Start'].item()
         # st.write(utc_datetime) # debug
-        departing_time_utc = (df_todays_flights['Event Start Date'].item()).strftime("%Y-%m-%d")
-        departing_time_utc = datetime.strptime(departing_time_utc, "%Y-%m-%d")
+        # departing_time_utc = (df_todays_flights['Event Start Date'].item()).strftime("%Y-%m-%d")
+        # departing_time_utc = datetime.strptime(departing_time_utc, "%Y-%m-%d")
         # st.write(departing_time_utc) # debug
 
         # departing_time_utc = df_todays_flights['Event Start'].item()
         # departing_time = datetime.strptime(departing_time, date_format)
         # departing_time_utc = departing_time.astimezone(utc_timezone)
-        # arriving_time_utc = df_todays_flights['Event End Date'].item()
-        arriving_time_utc = (df_todays_flights['Event End Date'].item()).strftime("%Y-%m-%d")
-        arriving_time_utc = datetime.strptime(arriving_time_utc, "%Y-%m-%d")
+        arriving_time_utc = df_todays_flights['Event End'].item()
+        # arriving_time_utc = (df_todays_flights['Event End Date'].item()).strftime("%Y-%m-%d")
+        # st.write(arriving_time_utc)  # debug
+        # arriving_time_utc = datetime.strptime(arriving_time_utc, "%Y-%m-%d")
         # arriving_time = datetime.strptime(arriving_time, date_format)
         # arriving_time_utc = arriving_time.astimezone(utc_timezone)
 
         # Scheduled 
         if departing_time_utc - timedelta(hours=1) >= utc_datetime:
+            # st.write("departing time utc - 1 >= utc_datetime") # debug
+            # st.write(departing_time_utc)  # debug
+            # st.write(utc_datetime) # debug
             st.markdown(f"{fn_translate(language, '**Live tracking** info from <u>1 hour</u> before the flight.')}",unsafe_allow_html=True)
             
             # how to account for more than 1 flight per day
@@ -136,7 +147,10 @@ def app():
             fn_create_dashboard(df_todays_flights, requests_left, language)
         
         # Arrived/ Landed
-        elif arriving_time_utc >= utc_datetime: # no flight info a few minutes after flight has landed
+        elif arriving_time_utc <= utc_datetime: # no flight info a few minutes after flight has landed
+            # st.write("arriting time utc >= utc datetime") # debug
+            # st.write(arriving_time_utc)
+            # st.write(utc_datetime)
             # st.write(f'{fn_translate(language, "The flight has landed at approximately ")} {datetime.date(arriving_time_utc)}')
             st.write(f'{fn_translate(language, "The flight has landed")}')
             fn_create_dashboard(df_future_flights, requests_left, language)            
@@ -148,11 +162,12 @@ def app():
             flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
             api_data = airlabs.fn_query_airlabs_api('flight', flight_iata)
             a = json.loads(api_data)
-            # st.write(a)
+            # st.write("a ", a) # debug
             
             #check for error message - meaning flight is not found i.e. it has landed and no more flight tracking info
             # should this error check be placed in function? 
             if 'error' in a:
+                # st.write('if error in a')  # debug
                 # st.write(f"{fn_translate(language, 'Flight {flight_iata} has landed at approximately ')}{arriving_time_utc}")
                 st.write(f'{fn_translate(language, "The flight has landed")}')
                 fn_create_dashboard(df_future_flights, requests_left, language)
