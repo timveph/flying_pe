@@ -1,0 +1,316 @@
+{
+    "type": "object",
+    "properties": {
+      "request": {
+        "type": "object",
+        "properties": {
+          "client": {
+            "type": "object",
+            "properties": {
+              "agent": {
+                "type": "object"
+              },
+              "connection": {
+                "type": "object",
+                "properties": {
+                  "isp_code": {
+                    "type": "integer"
+                  },
+                  "isp_name": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "isp_code",
+                  "isp_name",
+                  "type"
+                ]
+              },
+              "device": {
+                "type": "object"
+              },
+              "geo": {
+                "type": "object",
+                "properties": {
+                  "continent": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "country_code": {
+                    "type": "string"
+                  },
+                  "lat": {
+                    "type": "integer"
+                  },
+                  "lng": {
+                    "type": "integer"
+                  },
+                  "timezone": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "continent",
+                  "country",
+                  "country_code",
+                  "lat",
+                  "lng",
+                  "timezone"
+                ]
+              },
+              "ip": {
+                "type": "string"
+              },
+              "karma": {
+                "type": "object",
+                "properties": {
+                  "is_blocked": {
+                    "type": "boolean"
+                  },
+                  "is_bot": {
+                    "type": "boolean"
+                  },
+                  "is_crawler": {
+                    "type": "boolean"
+                  },
+                  "is_friend": {
+                    "type": "boolean"
+                  },
+                  "is_regular": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "is_blocked",
+                  "is_bot",
+                  "is_crawler",
+                  "is_friend",
+                  "is_regular"
+                ]
+              }
+            },
+            "required": [
+              "agent",
+              "connection",
+              "device",
+              "geo",
+              "ip",
+              "karma"
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "object",
+            "properties": {
+              "api_key": {
+                "type": "string"
+              },
+              "expired": {
+                "type": "string"
+              },
+              "id": {
+                "type": "integer"
+              },
+              "limits_by_hour": {
+                "type": "integer"
+              },
+              "limits_by_minute": {
+                "type": "integer"
+              },
+              "limits_by_month": {
+                "type": "integer"
+              },
+              "limits_total": {
+                "type": "integer"
+              },
+              "registered": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "api_key",
+              "expired",
+              "id",
+              "limits_by_hour",
+              "limits_by_minute",
+              "limits_by_month",
+              "limits_total",
+              "registered",
+              "type"
+            ]
+          },
+          "lang": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "properties": {
+              "flight_iata": {
+                "type": "string"
+              },
+              "lang": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "flight_iata",
+              "lang"
+            ]
+          },
+          "pid": {
+            "type": "integer"
+          },
+          "server": {
+            "type": "string"
+          },
+          "time": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "client",
+          "currency",
+          "host",
+          "id",
+          "key",
+          "lang",
+          "method",
+          "params",
+          "pid",
+          "server",
+          "time",
+          "version"
+        ]
+      },
+      "response": {
+        "type": "array",
+        "items": [
+          {
+            "type": "object",
+            "properties": {
+              "aircraft_icao": {
+                "type": "string"
+              },
+              "airline_iata": {
+                "type": "string"
+              },
+              "airline_icao": {
+                "type": "string"
+              },
+              "alt": {
+                "type": ["number", "null" , "string"]
+              },
+              "arr_iata": {
+                "type": "string"
+              },
+              "arr_icao": {
+                "type": "string"
+              },
+              "dep_iata": {
+                "type": "string"
+              },
+              "dep_icao": {
+                "type": "string"
+              },
+              "dir": {
+                "type": ["number", "null" , "string"]
+              },
+              "flag": {
+                "type": "string"
+              },
+              "flight_iata": {
+                "type": "string"
+              },
+              "flight_icao": {
+                "type": "string"
+              },
+              "flight_number": {
+                "type": "string"
+              },
+              "hex": {
+                "type": ["null" , "string"]
+              },
+              "lat": {
+                "type": ["number", "null" , "string"]
+              },
+              "lng": {
+                "type": ["number", "null" , "string"]
+              },
+              "reg_number": {
+                "type": "string"
+              },
+              "speed": {
+                "type": ["number", "null" , "string"]
+              },
+              "squawk": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "updated": {
+                "type": "integer"
+              },
+              "v_speed": {
+                "type": ["number", "null" , "string"]
+              }
+            },
+            "required": [
+              "aircraft_icao",
+              "airline_iata",
+              "airline_icao",
+              "alt",
+              "arr_iata",
+              "arr_icao",
+              "dep_iata",
+              "dep_icao",
+              "dir",
+              "flag",
+              "flight_iata",
+              "flight_icao",
+              "flight_number",
+              "hex",
+              "lat",
+              "lng",
+              "reg_number",
+              "speed",
+            
+              "status",
+              "updated",
+              "v_speed"
+            ]
+          }
+        ]
+      },
+      "terms": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "request",
+      "response",
+      "terms"
+    ]
+  }
