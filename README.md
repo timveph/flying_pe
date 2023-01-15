@@ -3,7 +3,7 @@
 
 
 ### Virtual Environments
-## Setup pyenv
+## Setup virtual env
 to do
 ## Create
 pyenv virtualenv 3.10.9 <name of virtual env>
