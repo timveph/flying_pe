@@ -48,7 +48,9 @@ def fn_create_dashboard(df, remaining_requests, language):
     (arr_lat, arr_lon) = df['Arriving Coordinates']
     list_lat = [dep_lat, arr_lat] # create input for graph
     list_lon = [dep_lon, arr_lon] # create input for graph
-    midpoint = fn_calc_midpoint(df['Arriving Coordinates'], df['Departing Coordinates'])
+    start_point = (dep_lon, dep_lat) # create tuple for midpoint calculation
+    end_point = (arr_lon, arr_lat) # create tuple for midpoint calculation
+    midpoint = fn_calc_midpoint(start_point, end_point)
     fig = fn_create_track_map(list_lat, list_lon, midpoint)
     config = {'displayModeBar': False}
 
@@ -159,6 +161,7 @@ def app():
         else:
             flight_no_str = df_todays_flights['Flight Number'].to_string(index=False)
             departing_coordinates = df_todays_flights['Departing Coordinates'].item()
+            arriving_coordinates = df_todays_flights['Arriving Coordinates'].item()
             flight_iata = 'BA'+str(re.findall(r'\d+', flight_no_str)[0])
             api_data = airlabs.fn_query_airlabs_api('flight', flight_iata)
             a = json.loads(api_data)
@@ -250,14 +253,18 @@ def app():
 
                 with con_map:
                     (dep_lat, dep_lon) = departing_coordinates # unpack tuple 'departing_coordinates' into seperate variables
+                    (arr_lat, arr_lon) = arriving_coordinates
                     curr_lat = flight_info['lat']
                     curr_lon = flight_info['lng']
                     list_lat = [dep_lat, curr_lat] # create input for graph
                     list_lon = [dep_lon, curr_lon] # create input for graph
 
-                    start_point = df_todays_flights['Departing Coordinates'].item()
-                    end_point = df_todays_flights['Arriving Coordinates'].item()
-                    midpoint = fn_calc_midpoint((start_point), (end_point))
+                    # start_point = df_todays_flights['Departing Coordinates'].item()
+                    # end_point = df_todays_flights['Arriving Coordinates'].item()
+                    start_point = (dep_lon, dep_lat) # create tuple for midpoint calculation
+                    end_point = (arr_lon, arr_lat) # create tuple for midpoint calculation
+                    midpoint = fn_calc_midpoint(start_point, end_point)
+                    # midpoint = fn_calc_midpoint((start_point), (end_point))
                     fig = fn_create_track_map(list_lat, list_lon, midpoint)
                     config = {'displayModeBar': False}
 
