@@ -81,7 +81,7 @@ def fn_create_scratch_map(df, location_col, hover_name, color_map, legend_title,
 
 @st.experimental_memo(max_entries = 5, ttl=900)
 def fn_create_track_map(list_lat, list_lon, midpoint):
-    (m_lat, m_lon) = midpoint
+    (m_lon, m_lat) = midpoint
 
     random_color = random.choice(['wheat', 'snow', 'white', 'ivory'])
     fig = go.Figure(data=go.Scattergeo(
@@ -121,7 +121,7 @@ def fn_create_track_map(list_lat, list_lon, midpoint):
             scope="world",
             # coastlinewidth = 2,
             # fitbounds = "geojson", # locations
-            projection_scale = 2.5, # zoom into the map - goes hand in hand with center
+            projection_scale = 1.5, # zoom into the map - goes hand in hand with center
             center=dict(lat=m_lat, lon=m_lon) # center the map based on midpoint between start and end coordinates
             # lataxis = dict(
             #     range = [0, 200],
