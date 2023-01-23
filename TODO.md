@@ -17,8 +17,6 @@ Read and work through the ideas: https://pmbaumgartner.github.io/streamlitopedia
             - different status i.e. 'no flight info', 'landed', 'scheduled', 'en-route'
         - account for multiple flights on one day
         - check for delays and post message on dashboard
-    - Tracking map - set lat, lon bounds to be the route distance? 
-        - try showing the whole earth as an option
 
 2. Create a flight tracker that gives an option to track a flight by flight number rather than track automatically
 
